@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
 
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Home!</Text>
-      <Text>Your appointments will be shown here.</Text>
+
+      <Button title={"Book an appointment"} />
     </View>
   );
 };
