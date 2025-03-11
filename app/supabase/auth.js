@@ -22,7 +22,7 @@ export const handleLogin = async (email, password, setUser, navigation) => {
 
     // Step 2: Fetch the user's role from the `roles` table
     const { data: role, error: roleError } = await supabase
-      .from("roles")
+      .from("profiles")
       .select("is_business")
       .eq("id", authData.user.id) // Use the logged-in user's ID
       .single();
@@ -49,11 +49,12 @@ export const handleSignup = async (
   email,
   password,
   fullName,
+  phone,
   isBusiness,
   setWaitingForVerification,
   navigation
 ) => {
-  if (!email || !password || !fullName) {
+  if (!email || !password || !fullName || !phone) {
     Alert.alert("Error", "Please fill in all fields.");
     return;
   }
@@ -74,16 +75,18 @@ export const handleSignup = async (
       throw authError;
     }
 
-    // Step 2: Insert the user's role into the `roles` table
-    const { error: roleError } = await supabase.from("roles").insert([
+    // Step 2: Insert the user's profile into the `profiles` table
+    const { error: profileError } = await supabase.from("profiles").insert([
       {
         id: authData.user.id, // Link to the auth user
+        full_name: fullName,
+        phone: phone,
         is_business: isBusiness, // Set the business account flag
       },
     ]);
 
-    if (roleError) {
-      throw roleError;
+    if (profileError) {
+      throw profileError;
     }
 
     // Step 3: Show a message to the user to verify their email
@@ -103,5 +106,23 @@ export const handleSignup = async (
     );
   } catch (error) {
     Alert.alert("Error", error.message || "An unexpected error occurred.");
+  }
+};
+// Fetch all business customers
+export const fetchBusinessCustomers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles") // Access the profiles table
+      .select("id, full_name, phone") // Select the fields you need
+      .eq("is_business", true); // Filter by business accounts
+
+    if (error) {
+      throw error;
+    }
+
+    return data; // Return the list of business customers
+  } catch (error) {
+    console.error("Error fetching business customers:", error.message);
+    return [];
   }
 };

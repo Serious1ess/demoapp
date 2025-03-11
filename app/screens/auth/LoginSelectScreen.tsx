@@ -24,14 +24,6 @@ const LoginSelectScreen = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("Login", { business: true })}>
-        <Text style={styles.buttonText}>
-          {intl.formatMessage({ id: "signInBusiness" })}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
         onPress={() => navigation.navigate("HomeTabs")}>
         <Text style={styles.buttonText}>
           {intl.formatMessage({ id: "continueWithoutSignIn" })}

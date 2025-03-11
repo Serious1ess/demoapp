@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useUser } from "../context/UserContext"; // Import useUser
+import { useUser } from "../../context/UserContext"; // Import useUser
 const BusinessHome = () => {
   const { user } = useUser(); // Access user data from context
 

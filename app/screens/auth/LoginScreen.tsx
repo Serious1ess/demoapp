@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useUser } from "../../context/UserContext"; // Import useUser
 import { handleLogin } from "../../supabase/auth"; // Import handleLogin
 
@@ -17,7 +24,8 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.subtitle}>Login to your account</Text>
 
       {/* Email Input */}
       <TextInput
@@ -27,6 +35,7 @@ const LoginScreen = ({ navigation }) => {
         style={styles.input}
         autoCapitalize="none"
         keyboardType="email-address"
+        placeholderTextColor="#999"
       />
 
       {/* Password Input */}
@@ -37,28 +46,84 @@ const LoginScreen = ({ navigation }) => {
         secureTextEntry
         style={styles.input}
         autoCapitalize="none"
+        placeholderTextColor="#999"
       />
 
       {/* Login Button */}
-      <Button
-        title={loading ? "Loading..." : "Login"}
+      <TouchableOpacity
+        style={styles.button}
         onPress={onLogin}
-        disabled={loading}
-      />
+        disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
+      </TouchableOpacity>
 
       {/* Sign Up Link */}
-      <Text onPress={() => navigation.navigate("Signup")} style={styles.link}>
-        Don't have an account? Sign up
-      </Text>
+      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+        <Text style={styles.link}>
+          Don't have an account? <Text style={styles.linkBold}>Sign up</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
-  input: { width: "80%", padding: 10, borderWidth: 1, marginVertical: 10 },
-  link: { color: "blue", marginTop: 10 },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 30,
+  },
+  input: {
+    width: "100%",
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginVertical: 10,
+    backgroundColor: "#fff",
+    fontSize: 16,
+    color: "#333",
+  },
+  button: {
+    width: "100%",
+    padding: 15,
+    backgroundColor: "#007bff",
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  link: {
+    color: "#666",
+    marginTop: 20,
+    fontSize: 16,
+  },
+  linkBold: {
+    fontWeight: "bold",
+    color: "#007bff",
+  },
 });
 
 export default LoginScreen;

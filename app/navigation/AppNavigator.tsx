@@ -7,12 +7,38 @@ import { useUser } from "../context/UserContext"; // Import useUser
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
-import BusinessHome from "../screens/BusinessHome";
-import HomeScreen from "../screens/HomeScreen";
+import BusinessHome from "../screens/bussinssScreen/BusinessHome";
+import AppointmentConfirmationScreen from "../screens/customerScreen/AppointmentConfirmationScreen";
+import DateTimeSelectionScreen from "../screens/customerScreen/DateTimeSelectionScreen";
+import HomeScreen from "../screens/customerScreen/HomeScreen";
+import ServiceSelectionScreen from "../screens/customerScreen/ServiceSelectionScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Stack navigator for customer appointment booking flow
+const CustomerStack = createStackNavigator();
+
+const CustomerBookingNavigator = () => {
+  return (
+    <CustomerStack.Navigator screenOptions={{ headerShown: false }}>
+      <CustomerStack.Screen name="CustomerHome" component={HomeScreen} />
+      <CustomerStack.Screen
+        name="ServiceSelection"
+        component={ServiceSelectionScreen}
+      />
+      <CustomerStack.Screen
+        name="DateTimeSelection"
+        component={DateTimeSelectionScreen}
+      />
+      <CustomerStack.Screen
+        name="AppointmentConfirmation"
+        component={AppointmentConfirmationScreen}
+      />
+    </CustomerStack.Navigator>
+  );
+};
 
 // Bottom Tabs with Language Selector in Header
 const HomeTabs = () => {
@@ -29,7 +55,7 @@ const HomeTabs = () => {
       }}>
       <Tab.Screen
         name="Home"
-        component={user?.isBusiness ? BusinessHome : HomeScreen} // Conditionally render the component
+        component={user?.isBusiness ? BusinessHome : CustomerBookingNavigator} // Use the nested navigator for customer screens
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" color={color} size={size} />
@@ -56,10 +82,12 @@ const AppNavigator = () => {
   useEffect(() => {
     // Check if a user is already logged in
     if (user) {
+      console.log(user);
       setInitialRoute("HomeTabs"); // Navigate to HomeTabs if user exists
-    } else {
-      setInitialRoute("LoginSelect"); // Navigate to LoginSelect if no user exists
     }
+    // } else {
+    //   setInitialRoute("LoginSelect"); // Navigate to LoginSelect if no user exists
+    // }
   }, [user]);
 
   return (
