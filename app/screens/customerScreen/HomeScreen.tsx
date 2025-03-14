@@ -2,10 +2,9 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
+import tw from "tailwind-react-native-classnames";
 import CustomerList from "../../components/FlatList";
-import { styles } from "../../style/customerScreens/homeScreen";
 import { fetchBusinessCustomers } from "../../supabase/auth";
-
 // Define the type for our navigation
 type RootStackParamList = {
   Home: undefined;
@@ -56,7 +55,7 @@ const HomeScreen = () => {
     navigation.navigate("ServiceSelection", { customer });
   };
   return (
-    <View style={styles.container}>
+    <View style={tw`flex-1 p-4`}>
       <CustomerList
         customers={businessCustomers}
         loading={loading}

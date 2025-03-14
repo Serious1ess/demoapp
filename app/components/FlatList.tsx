@@ -2,12 +2,12 @@ import React from "react";
 import {
   ActivityIndicator,
   FlatList,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import tw from "tailwind-react-native-classnames";
 
 interface Customer {
   id: string;
@@ -30,11 +30,23 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onSearchChange,
   onCustomerPress,
 }) => {
+  // Filter customers based on search query
+  const filteredCustomers = searchQuery
+    ? customers.filter(
+        (customer) =>
+          customer.full_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          customer.phone.includes(searchQuery)
+      )
+    : customers;
+
   return (
-    <View>
+    <View style={tw`flex-1 p-4`}>
       <TextInput
-        style={styles.searchBar}
+        style={tw`h-12 border border-gray-300 rounded-lg px-4 mb-6`}
         placeholder="Search customers..."
+        placeholderTextColor="#9CA3AF"
         value={searchQuery}
         onChangeText={onSearchChange}
       />
@@ -42,41 +54,27 @@ const CustomerList: React.FC<CustomerListProps> = ({
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <FlatList
-          data={customers}
+          data={filteredCustomers}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => onCustomerPress(item)}>
-              <View style={styles.item}>
-                <Text style={styles.itemName}>{item.full_name}</Text>
-                <Text style={styles.itemPhone}>{item.phone}</Text>
+              <View style={tw`bg-white p-4 rounded-lg mb-4 shadow-md`}>
+                <Text style={tw`text-lg font-semibold text-black`}>
+                  {item.full_name}
+                </Text>
+                <Text style={tw`text-sm text-gray-600`}>{item.phone}</Text>
               </View>
             </TouchableOpacity>
           )}
-          keyExtractor={(item) => item.id.toString()}
-          ListEmptyComponent={<Text>No customers found.</Text>}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <Text style={tw`text-center text-gray-500`}>
+              No customers found.
+            </Text>
+          }
         />
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  searchBar: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  item: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 10,
-    elevation: 3,
-  },
-  itemName: { fontSize: 18, fontWeight: "bold" },
-  itemPhone: { fontSize: 14, color: "#666" },
-});
 
 export default CustomerList;

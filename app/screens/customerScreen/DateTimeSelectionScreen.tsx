@@ -1,10 +1,20 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import DatePicker from "../../components/datepicker";
-import { styles } from "../../style/customerScreens/dateTimeScreen";
+import DatePickerWeb from "react-datepicker"; // For web
+import "react-datepicker/dist/react-datepicker.css"; // CSS for web date picker
 
+import {
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import "../../globle.css"; // Adjust the path as needed
+// import DatePicker from "react-native-date-picker"; // For Android and iOS
+import DateTimePicker from "@react-native-community/datetimepicker";
+import tw from "tailwind-react-native-classnames";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
@@ -53,6 +63,7 @@ const DateTimeSelectionScreen = () => {
   const route = useRoute<DateTimeSelectionRouteProp>();
   const { customer, selectedServices } = route.params;
 
+  const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -60,9 +71,12 @@ const DateTimeSelectionScreen = () => {
   const [availableHours, setAvailableHours] = useState<TimeSlot[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
-  const handleDateSelect = (date: Date) => {
-    const selectedDateString = date.toISOString().split("T")[0];
-    setSelectedDate(selectedDateString);
+  const handleDateSelect = (date: Date | null) => {
+    if (date) {
+      setSelectedDateObj(date);
+      const selectedDateString = date.toISOString().split("T")[0];
+      setSelectedDate(selectedDateString);
+    }
     setShowDatePicker(false);
 
     // Mock business hours (9 AM - 5 PM) with some busy slots
@@ -91,67 +105,122 @@ const DateTimeSelectionScreen = () => {
     }
   };
 
-  // DatePicker placed outside the main container
-  if (showDatePicker) {
-    return <DatePicker onConfirm={handleDateSelect} />;
-  }
+  // Platform-specific date picker
+  const renderDatePicker = () => {
+    if (Platform.OS === "web") {
+      return (
+        <div style={tw`w-full`}>
+          <DatePickerWeb
+            selected={selectedDateObj}
+            onChange={(date: Date | null) => handleDateSelect(date)}
+            inline // Show the calendar inline
+          />
+        </div>
+      );
+    } else {
+      return showDatePicker ? (
+        <DateTimePicker
+          value={selectedDateObj}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            setShowDatePicker(false);
+            if (date) handleDateSelect(date);
+          }}
+        />
+      ) : null;
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>Schedule Appointment</Text>
+    <ScrollView
+      contentContainerStyle={tw`flex-grow bg-white p-4 ${
+        Platform.OS === "ios" ? "pt-12" : "pt-4"
+      }`}>
+      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
+        Schedule Appointment
+      </Text>
 
       {/* Customer Info */}
-      <View style={styles.customerInfo}>
-        <Text style={styles.customerName}>{customer?.full_name}</Text>
-        <Text style={styles.customerPhone}>Phone: {customer?.phone}</Text>
+      <View
+        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
+          {customer?.full_name}
+        </Text>
+        <Text style={tw`text-base text-gray-600`}>
+          Phone: {customer?.phone}
+        </Text>
       </View>
 
       {/* Selected Services Summary */}
-      <View style={styles.servicesSummary}>
-        <Text style={styles.sectionTitle}>Selected Services:</Text>
-        <ScrollView style={styles.selectedServicesContainer}>
+      <View style={tw`mb-6`}>
+        <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+          Selected Services:
+        </Text>
+        <ScrollView style={tw`max-h-40 bg-gray-50 rounded-lg p-2 shadow-sm`}>
           {selectedServices.map((service) => (
-            <View key={service.id} style={styles.selectedServiceItem}>
-              <Text style={styles.serviceName}>{service.name}</Text>
-              <Text style={styles.servicePrice}>${service.price}</Text>
+            <View
+              key={service.id}
+              style={tw`flex-row justify-between items-center py-2 border-b border-gray-200`}>
+              <Text style={tw`text-base text-gray-800`}>{service.name}</Text>
+              <Text style={tw`text-base font-semibold text-blue-800`}>
+                ${service.price}
+              </Text>
             </View>
           ))}
         </ScrollView>
       </View>
 
       {/* Date Selection */}
-      <Text style={styles.dateSelectorTitle}>Choose Your Preferred Date:</Text>
-      <View style={styles.datePickerContainer}>
+      <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+        Choose Your Preferred Date:
+      </Text>
+      <View style={tw`mb-6`}>
         <TouchableOpacity
-          style={styles.datePickerButton}
+          style={[
+            tw`bg-blue-50 p-3 rounded-lg border border-blue-500 items-center`,
+            Platform.OS === "web" ? { display: "none" } : {},
+          ]}
           onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.datePickerButtonText}>Open Calendar</Text>
+          <Text style={tw`text-base font-semibold text-blue-800`}>
+            Open Calendar
+          </Text>
         </TouchableOpacity>
 
         {selectedDate && (
-          <Text style={styles.selectedDate}>Date: {selectedDate}</Text>
+          <Text
+            style={tw`text-base font-bold text-blue-800 mt-4 bg-blue-100 p-3 rounded-lg text-center`}>
+            Date: {selectedDate}
+          </Text>
         )}
+
+        {/* Render the platform-specific date picker */}
+        {renderDatePicker()}
       </View>
 
       {/* Time Slots */}
       {selectedDate && availableHours.length > 0 && (
-        <View style={styles.timeSlotsContainer}>
-          <Text style={styles.timeSlotTitle}>Select a Time Slot</Text>
-          <View style={styles.timeSlotGrid}>
+        <View style={tw`mb-6`}>
+          <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+            Select a Time Slot
+          </Text>
+          <View style={tw`flex-row flex-wrap justify-between`}>
             {availableHours.map((item) => (
               <TouchableOpacity
                 key={item.time}
                 style={[
-                  styles.timeSlot,
-                  item.isBusy ? styles.busySlot : styles.availableSlot,
-                  selectedTime === item.time && styles.selectedSlot,
+                  tw`p-3 m-1 rounded-lg items-center justify-center w-1/3`,
+                  item.isBusy
+                    ? tw`bg-red-100 border-red-300`
+                    : tw`bg-green-100 border-green-300`,
+                  selectedTime === item.time && tw`bg-blue-100 border-blue-500`,
                 ]}
                 disabled={item.isBusy}
                 onPress={() => setSelectedTime(item.time)}>
                 <Text
                   style={[
-                    styles.timeSlotText,
-                    { color: item.isBusy ? "#888" : "#000" },
+                    tw`text-base font-medium`,
+                    item.isBusy ? tw`text-gray-500` : tw`text-gray-800`,
                   ]}>
                   {item.time}
                 </Text>
@@ -159,7 +228,8 @@ const DateTimeSelectionScreen = () => {
             ))}
           </View>
           {selectedTime && (
-            <Text style={styles.selectedTimeText}>
+            <Text
+              style={tw`text-base font-bold text-blue-800 mt-4 bg-blue-100 p-3 rounded-lg text-center`}>
               Selected Time: {selectedTime}
             </Text>
           )}
@@ -167,26 +237,20 @@ const DateTimeSelectionScreen = () => {
       )}
 
       {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
+      <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+          style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Back</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.nextButton]}
+          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
           onPress={handleNext}
           disabled={!selectedTime}>
-          <Text
-            style={[
-              styles.buttonText,
-              { color: selectedTime ? "#fff" : "#aaa" },
-            ]}>
-            Next
-          </Text>
+          <Text style={tw`text-base font-semibold text-white`}>Next</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

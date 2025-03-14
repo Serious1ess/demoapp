@@ -1,8 +1,14 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { styles } from "../../style/customerScreens/servicesScreen";
+import {
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import tw from "tailwind-react-native-classnames";
 
 // Define the types for our navigation parameters
 type RootStackParamList = {
@@ -53,6 +59,8 @@ const ServiceSelectionScreen = () => {
     { id: 2, name: "Shave", price: 15, selected: false },
     { id: 3, name: "Hair Coloring", price: 45, selected: false },
     { id: 4, name: "Styling", price: 30, selected: false },
+    { id: 5, name: "beard", price: 30, selected: false },
+    { id: 6, name: "Hair message", price: 30, selected: false },
   ]);
 
   const toggleServiceSelection = (serviceId: number) => {
@@ -74,43 +82,57 @@ const ServiceSelectionScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>Select Services</Text>
+    <View
+      style={tw`flex-1 bg-white p-4 ${
+        Platform.OS === "ios" ? "pt-12" : "pt-4"
+      }`}>
+      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
+        Select Services
+      </Text>
 
       {/* Customer Info */}
-      <View style={styles.customerInfo}>
-        <Text style={styles.customerName}>{customer?.full_name}</Text>
-        <Text style={styles.customerPhone}>Phone: {customer?.phone}</Text>
+      <View
+        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
+          {customer?.full_name}
+        </Text>
+        <Text style={tw`text-base text-gray-600`}>
+          Phone: {customer?.phone}
+        </Text>
       </View>
 
       {/* Services Section */}
-      <Text style={styles.sectionTitle}>Available Services:</Text>
-      <ScrollView style={styles.servicesContainer}>
+      <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+        Available Services:
+      </Text>
+      <ScrollView style={tw`max-h-96 mb-6`}>
         {services.map((service) => (
           <TouchableOpacity
             key={service.id}
-            style={[
-              styles.serviceItem,
-              service.selected && styles.selectedServiceItem,
-            ]}
+            style={tw`flex-row justify-between items-center p-3 mb-2 bg-gray-50 rounded-lg ${
+              service.selected ? "bg-blue-50 border border-blue-500" : ""
+            }`}
             onPress={() => toggleServiceSelection(service.id)}>
-            <Text style={styles.serviceName}>{service.name}</Text>
-            <Text style={styles.servicePrice}>${service.price}</Text>
+            <Text style={tw`text-base text-gray-800`}>{service.name}</Text>
+            <Text
+              style={tw`text-base font-semibold text-blue-800 flex-1 text-right`}>
+              ${service.price}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
+      <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+          style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Back</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.nextButton]}
+          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
           onPress={handleNext}>
-          <Text style={styles.buttonText}>Next</Text>
+          <Text style={tw`text-base font-semibold text-white`}>Next</Text>
         </TouchableOpacity>
       </View>
     </View>

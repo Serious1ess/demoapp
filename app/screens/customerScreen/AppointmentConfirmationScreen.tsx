@@ -1,8 +1,16 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { styles } from "../../style/customerScreens/appointmentConformationScreen";
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import tw from "tailwind-react-native-classnames";
+
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
@@ -68,65 +76,87 @@ const AppointmentConfirmationScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>Confirm Appointment</Text>
+    <ScrollView
+      contentContainerStyle={tw`flex-grow bg-white p-4 ${
+        Platform.OS === "ios" ? "pt-12" : "pt-4"
+      }`}>
+      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
+        Confirm Appointment
+      </Text>
 
       {/* Customer Info */}
-      <View style={styles.customerInfo}>
-        <Text style={styles.customerName}>{customer?.full_name}</Text>
-        <Text style={styles.customerPhone}>Phone: {customer?.phone}</Text>
+      <View
+        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
+          {customer?.full_name}
+        </Text>
+        <Text style={tw`text-base text-gray-600`}>
+          Phone: {customer?.phone}
+        </Text>
       </View>
 
       {/* Appointment Details */}
-      <View style={styles.appointmentDetails}>
-        <Text style={styles.sectionTitle}>Appointment Details</Text>
+      <View style={tw`mb-6`}>
+        <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+          Appointment Details
+        </Text>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Date:</Text>
-          <Text style={styles.detailValue}>{selectedDate}</Text>
+        <View style={tw`flex-row justify-between items-center mb-3`}>
+          <Text style={tw`text-base font-medium text-gray-600`}>Date:</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>
+            {selectedDate}
+          </Text>
         </View>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Time:</Text>
-          <Text style={styles.detailValue}>{selectedTime}</Text>
+        <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-base font-medium text-gray-600`}>Time:</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>
+            {selectedTime}
+          </Text>
         </View>
       </View>
 
       {/* Selected Services */}
-      <View style={styles.servicesSection}>
-        <Text style={styles.sectionTitle}>Selected Services</Text>
+      <View style={tw`mb-6`}>
+        <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+          Selected Services
+        </Text>
 
-        <ScrollView style={styles.servicesContainer}>
+        <ScrollView style={tw`max-h-40 bg-gray-50 rounded-lg p-2 shadow-sm`}>
           {selectedServices.map((service) => (
-            <View key={service.id} style={styles.serviceItem}>
-              <Text style={styles.serviceName}>{service.name}</Text>
-              <Text style={styles.servicePrice}>${service.price}</Text>
+            <View
+              key={service.id}
+              style={tw`flex-row justify-between items-center py-2 border-b border-gray-200`}>
+              <Text style={tw`text-base text-gray-800`}>{service.name}</Text>
+              <Text style={tw`text-base font-semibold text-blue-800`}>
+                ${service.price}
+              </Text>
             </View>
           ))}
         </ScrollView>
 
-        <View style={styles.totalPriceContainer}>
-          <Text style={styles.totalPriceLabel}>Total:</Text>
-          <Text style={styles.totalPrice}>${totalPrice}</Text>
+        <View style={tw`flex-row justify-between items-center mt-4`}>
+          <Text style={tw`text-lg font-bold text-gray-800`}>Total:</Text>
+          <Text style={tw`text-lg font-bold text-blue-800`}>${totalPrice}</Text>
         </View>
       </View>
 
       {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
+      <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+          style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Back</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.confirmButton]}
+          style={tw`flex-1 bg-green-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
           onPress={handleConfirm}>
-          <Text style={[styles.buttonText, { color: "#fff" }]}>
+          <Text style={tw`text-base font-semibold text-white`}>
             Confirm Appointment
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
