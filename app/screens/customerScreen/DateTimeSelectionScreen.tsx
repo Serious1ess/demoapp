@@ -122,7 +122,8 @@ const DateTimeSelectionScreen = () => {
         <DateTimePicker
           value={selectedDateObj}
           mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          // display={Platform.OS === "ios" ? "spinner" : }
+          display={"default"}
           onChange={(event, date) => {
             setShowDatePicker(false);
             if (date) handleDateSelect(date);
