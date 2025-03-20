@@ -50,12 +50,27 @@ export const handleSignup = async (
   password,
   fullName,
   phone,
+  idNumber,
+  profilePicture,
   isBusiness,
+  businessInfo,
   setWaitingForVerification,
   navigation
 ) => {
-  if (!email || !password || !fullName || !phone) {
-    Alert.alert("Error", "Please fill in all fields.");
+  if (!email || !password || !fullName || !phone || !idNumber) {
+    Alert.alert("Error", "Please fill in all required fields.");
+    return;
+  }
+
+  if (
+    isBusiness &&
+    (!businessInfo?.serviceType ||
+      !businessInfo?.businessAddress ||
+      !businessInfo?.businessDaysOpen?.length ||
+      !businessInfo?.businessHours?.open ||
+      !businessInfo?.businessHours?.close)
+  ) {
+    Alert.alert("Error", "Please fill in all business information fields.");
     return;
   }
 
@@ -75,15 +90,59 @@ export const handleSignup = async (
       throw authError;
     }
 
-    // Step 2: Insert the user's profile into the `profiles` table
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: authData.user.id, // Link to the auth user
-        full_name: fullName,
-        phone: phone,
-        is_business: isBusiness, // Set the business account flag
-      },
-    ]);
+    // Step 2: Upload profile picture if provided
+    let profilePictureUrl = null;
+    if (profilePicture) {
+      try {
+        // Convert the profilePicture URI to a blob
+        const response = await fetch(profilePicture);
+        const blob = await response.blob();
+
+        // Upload to Supabase Storage
+        const fileExt = profilePicture.split(".").pop();
+        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `profiles/${fileName}`;
+
+        const { data, error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, blob);
+
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+        } else {
+          // Get the public URL
+          const { data: urlData } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(filePath);
+
+          profilePictureUrl = urlData?.publicUrl;
+        }
+      } catch (imageError) {
+        console.error("Error processing image:", imageError);
+      }
+    }
+
+    // Step 3: Insert the user's profile into the `profiles` table
+    const profileData = {
+      id: authData.user.id, // Link to the auth user
+      full_name: fullName,
+      phone: phone,
+      id_number: idNumber,
+      profile_picture: profilePictureUrl,
+      is_business: isBusiness, // Set the business account flag
+    };
+
+    // Add business-specific fields if it's a business account
+    if (isBusiness && businessInfo) {
+      profileData.service_type = businessInfo.serviceType;
+      profileData.business_address = businessInfo.businessAddress;
+      profileData.business_days_open = businessInfo.businessDaysOpen;
+      profileData.business_hours = businessInfo.businessHours;
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert([profileData]);
 
     if (profileError) {
       throw profileError;
