@@ -54,14 +54,26 @@ const ServiceSelectionScreen = () => {
   const { customer } = route.params;
 
   // Mock services data for demonstration
-  const [services, setServices] = useState<Service[]>([
-    { id: 1, name: "Haircut", price: 25, selected: false },
-    { id: 2, name: "Shave", price: 15, selected: false },
-    { id: 3, name: "Hair Coloring", price: 45, selected: false },
-    { id: 4, name: "Styling", price: 30, selected: false },
-    { id: 5, name: "beard", price: 30, selected: false },
-    { id: 6, name: "Hair message", price: 30, selected: false },
-  ]);
+  const availableServices: Service[] = [
+    { id: 1, name: "Haircut", price: 25 },
+    { id: 2, name: "Shave", price: 15 },
+    { id: 3, name: "Hair Coloring", price: 45 },
+    { id: 4, name: "Styling", price: 30 },
+    { id: 5, name: "Beard", price: 30 },
+    { id: 6, name: "Hair Massage", price: 30 },
+  ];
+  console.log(customer.services);
+  // Get customer's selected services (assuming it's an array of service IDs)
+  const customerServiceIds =
+    customer?.services?.map((s: Service) => s.id) || [];
+
+  // Initialize services state with customer-selected services marked
+  const [services, setServices] = useState<Service[]>(
+    availableServices.map((service) => ({
+      ...service,
+      selected: customerServiceIds.includes(service.id),
+    }))
+  );
 
   const toggleServiceSelection = (serviceId: number) => {
     setServices(

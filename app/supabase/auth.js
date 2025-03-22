@@ -44,7 +44,6 @@ export const handleLogin = async (email, password, setUser, navigation) => {
   }
 };
 
-// Signup function
 export const handleSignup = async (
   email,
   password,
@@ -53,24 +52,11 @@ export const handleSignup = async (
   idNumber,
   profilePicture,
   isBusiness,
-  businessInfo,
   setWaitingForVerification,
   navigation
 ) => {
   if (!email || !password || !fullName || !phone || !idNumber) {
     Alert.alert("Error", "Please fill in all required fields.");
-    return;
-  }
-
-  if (
-    isBusiness &&
-    (!businessInfo?.serviceType ||
-      !businessInfo?.businessAddress ||
-      !businessInfo?.businessDaysOpen?.length ||
-      !businessInfo?.businessHours?.open ||
-      !businessInfo?.businessHours?.close)
-  ) {
-    Alert.alert("Error", "Please fill in all business information fields.");
     return;
   }
 
@@ -94,11 +80,8 @@ export const handleSignup = async (
     let profilePictureUrl = null;
     if (profilePicture) {
       try {
-        // Convert the profilePicture URI to a blob
         const response = await fetch(profilePicture);
         const blob = await response.blob();
-
-        // Upload to Supabase Storage
         const fileExt = profilePicture.split(".").pop();
         const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
         const filePath = `profiles/${fileName}`;
@@ -107,14 +90,10 @@ export const handleSignup = async (
           .from("avatars")
           .upload(filePath, blob);
 
-        if (uploadError) {
-          console.error("Error uploading image:", uploadError);
-        } else {
-          // Get the public URL
+        if (!uploadError) {
           const { data: urlData } = supabase.storage
             .from("avatars")
             .getPublicUrl(filePath);
-
           profilePictureUrl = urlData?.publicUrl;
         }
       } catch (imageError) {
@@ -124,62 +103,108 @@ export const handleSignup = async (
 
     // Step 3: Insert the user's profile into the `profiles` table
     const profileData = {
-      id: authData.user.id, // Link to the auth user
+      id: authData.user.id,
       full_name: fullName,
       phone: phone,
       id_number: idNumber,
       profile_picture: profilePictureUrl,
-      is_business: isBusiness, // Set the business account flag
+      is_business: isBusiness,
     };
-
-    // Add business-specific fields if it's a business account
-    if (isBusiness && businessInfo) {
-      profileData.service_type = businessInfo.serviceType;
-      profileData.business_address = businessInfo.businessAddress;
-      profileData.business_days_open = businessInfo.businessDaysOpen;
-      profileData.business_hours = businessInfo.businessHours;
-    }
 
     const { error: profileError } = await supabase
       .from("profiles")
       .insert([profileData]);
-
     if (profileError) {
       throw profileError;
     }
 
-    // Step 3: Show a message to the user to verify their email
+    // Step 4: Show verification message
     setWaitingForVerification(true);
     Alert.alert(
       "Verify Your Email",
       "A verification link has been sent to your email. Please verify your email to continue.",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            // Redirect to the login screen or stay on the signup screen
-            navigation.replace("Login");
-          },
-        },
-      ]
+      [{ text: "OK", onPress: () => navigation.replace("Login") }]
     );
   } catch (error) {
     Alert.alert("Error", error.message || "An unexpected error occurred.");
   }
 };
-// Fetch all business customers
-export const fetchBusinessCustomers = async () => {
+// for saving new service data
+export const saveUserServiceData = async (userId, businessInfo) => {
+  if (!userId || !businessInfo) {
+    console.error("Missing userId or businessInfo");
+    return;
+  }
+
   try {
+    if (
+      !businessInfo.businessHours ||
+      !businessInfo.businessHours.open ||
+      !businessInfo.businessHours.close
+    ) {
+      console.error("Missing business hours information");
+      return;
+    }
+
+    // Convert "9:30:00 AM" -> "09:30:00" (24-hour format)
+    const convertTo24HourFormat = (timeStr) => {
+      if (!timeStr) return null;
+      const date = new Date(`1970-01-01 ${timeStr}`);
+      return date.toTimeString().split(" ")[0]; // Extract HH:MM:SS
+    };
+
+    const businessData = {
+      user_id: userId,
+      service_type: businessInfo.serviceType,
+      business_address: businessInfo.businessAddress,
+      business_days_open: businessInfo.businessDaysOpen, // Should be an array
+      opening_time: convertTo24HourFormat(businessInfo.businessHours.open),
+      closing_time: convertTo24HourFormat(businessInfo.businessHours.close),
+    };
+
+    if (!businessData.opening_time || !businessData.closing_time) {
+      console.error("Opening or closing time is invalid:", businessData);
+      return;
+    }
+
     const { data, error } = await supabase
-      .from("profiles") // Access the profiles table
-      .select("id, full_name, phone") // Select the fields you need
-      .eq("is_business", true); // Filter by business accounts
+      .from("services")
+      .insert([businessData]);
 
     if (error) {
       throw error;
     }
 
-    return data; // Return the list of business customers
+    console.log("Service data saved successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error saving business data:", error.message);
+  }
+};
+
+export const handleLogout = async (setUser, navigation) => {
+  try {
+    await supabase.auth.signOut(); // Sign out the user
+    setUser(null); // Clear the user data from the context
+    navigation.replace("Login"); // Navigate to the login screen
+  } catch (error) {
+    console.error("Error logging out:", error.message);
+  }
+};
+export const fetchBusinessCustomers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        "id, full_name, phone, services:services(id, service_type, business_address, business_days_open, opening_time, closing_time)"
+      )
+      .eq("is_business", true); // Only fetch business customers
+
+    if (error) {
+      throw error;
+    }
+
+    return data; // List of business customers with their services
   } catch (error) {
     console.error("Error fetching business customers:", error.message);
     return [];

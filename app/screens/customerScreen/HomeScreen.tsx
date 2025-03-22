@@ -44,6 +44,7 @@ const HomeScreen = () => {
     const loadBusinessCustomers = async () => {
       setLoading(true);
       const customers = await fetchBusinessCustomers();
+      console.log(customers);
       setBusinessCustomers(customers);
       setLoading(false);
     };

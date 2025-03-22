@@ -7,6 +7,7 @@ import { useUser } from "../context/UserContext"; // Import useUser
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
+import ServiceScreen from "../screens/bussinssScreen/AddServiceScreen";
 import BusinessHome from "../screens/bussinssScreen/BusinessHome";
 import AppointmentConfirmationScreen from "../screens/customerScreen/AppointmentConfirmationScreen";
 import DateTimeSelectionScreen from "../screens/customerScreen/DateTimeSelectionScreen";
@@ -39,6 +40,16 @@ const CustomerBookingNavigator = () => {
     </CustomerStack.Navigator>
   );
 };
+const ProfileStack = createStackNavigator();
+
+const ProfileStackNavigator = () => {
+  return (
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+      <ProfileStack.Screen name="ServiceScreen" component={ServiceScreen} />
+    </ProfileStack.Navigator>
+  );
+};
 
 // Bottom Tabs with Language Selector in Header
 const HomeTabs = () => {
@@ -64,7 +75,7 @@ const HomeTabs = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" color={color} size={size} />
@@ -98,6 +109,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="HomeTabs" component={HomeTabs} />
+      <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
     </Stack.Navigator>
   );
 };

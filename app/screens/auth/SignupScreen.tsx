@@ -14,9 +14,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
 import tw from "tailwind-react-native-classnames";
 import { handleSignup } from "../../supabase/auth"; // Import handleSignup
+// Import handleSignup
 
 // Define types for our form errors
 interface FormErrors {
@@ -31,14 +31,6 @@ interface FormErrors {
   businessDaysOpen?: string;
   businessHours?: string;
   [key: string]: string | undefined;
-}
-
-// Define type for business info
-interface BusinessInfo {
-  serviceType: string;
-  businessAddress: string;
-  businessDaysOpen: string[];
-  businessHours: { open: string; close: string };
 }
 
 // Navigation prop type
@@ -94,25 +86,25 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     }
   };
 
-  // Days of the week options
-  const daysOptions = [
-    { label: "Monday", value: "monday" },
-    { label: "Tuesday", value: "tuesday" },
-    { label: "Wednesday", value: "wednesday" },
-    { label: "Thursday", value: "thursday" },
-    { label: "Friday", value: "friday" },
-    { label: "Saturday", value: "saturday" },
-    { label: "Sunday", value: "sunday" },
-  ];
+  // // Days of the week options
+  // const daysOptions = [
+  //   { label: "Monday", value: "monday" },
+  //   { label: "Tuesday", value: "tuesday" },
+  //   { label: "Wednesday", value: "wednesday" },
+  //   { label: "Thursday", value: "thursday" },
+  //   { label: "Friday", value: "friday" },
+  //   { label: "Saturday", value: "saturday" },
+  //   { label: "Sunday", value: "sunday" },
+  // ];
 
   // Toggle selection of business days
-  const toggleDaySelection = (day: string) => {
-    if (businessDaysOpen.includes(day)) {
-      setBusinessDaysOpen(businessDaysOpen.filter((d) => d !== day));
-    } else {
-      setBusinessDaysOpen([...businessDaysOpen, day]);
-    }
-  };
+  // const toggleDaySelection = (day: string) => {
+  //   if (businessDaysOpen.includes(day)) {
+  //     setBusinessDaysOpen(businessDaysOpen.filter((d) => d !== day));
+  //   } else {
+  //     setBusinessDaysOpen([...businessDaysOpen, day]);
+  //   }
+  // };
 
   // Validate form fields
   const validateForm = () => {
@@ -125,19 +117,19 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     if (!fullName) newErrors.fullName = "Full name is required";
     if (!phone) newErrors.phone = "Phone number is required";
     if (!idNumber) newErrors.idNumber = "ID number is required";
-    if (!profilePicture)
-      newErrors.profilePicture = "Profile picture is required";
+    // if (!profilePicture)
+    //   newErrors.profilePicture = "Profile picture is required";
 
-    // Business-specific validations
-    if (isBusiness) {
-      if (!serviceType) newErrors.serviceType = "Service type is required";
-      if (!businessAddress)
-        newErrors.businessAddress = "Business address is required";
-      if (businessDaysOpen.length === 0)
-        newErrors.businessDaysOpen = "Business days are required";
-      if (!businessHours.open || !businessHours.close)
-        newErrors.businessHours = "Business hours are required";
-    }
+    // // Business-specific validations
+    // if (isBusiness) {
+    //   if (!serviceType) newErrors.serviceType = "Service type is required";
+    //   if (!businessAddress)
+    //     newErrors.businessAddress = "Business address is required";
+    //   if (businessDaysOpen.length === 0)
+    //     newErrors.businessDaysOpen = "Business days are required";
+    //   if (!businessHours.open || !businessHours.close)
+    //     newErrors.businessHours = "Business hours are required";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -151,16 +143,6 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
 
     setLoading(true);
     try {
-      // Prepare business info object if user is a business
-      const businessData = isBusiness
-        ? {
-            serviceType,
-            businessAddress,
-            businessDaysOpen,
-            businessHours,
-          }
-        : null;
-
       // Pass all the required parameters to handleSignup
       await handleSignup(
         email,
@@ -170,7 +152,6 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
         idNumber,
         profilePicture,
         isBusiness,
-        businessData,
         setWaitingForVerification,
         navigation
       );
@@ -317,137 +298,6 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
               thumbColor={isBusiness ? "#fff" : "#f4f3f4"}
             />
           </View>
-
-          {/* Conditional Business Account Fields */}
-          {isBusiness && (
-            <View style={tw`w-full mt-4 border-t border-gray-300 pt-4`}>
-              <Text style={tw`text-xl font-bold text-gray-900 mb-4`}>
-                Business Information
-              </Text>
-
-              {/* Service Type */}
-              <View style={tw`w-full mb-4`}>
-                <Text style={tw`text-lg text-gray-900 mb-2`}>
-                  Service Type *
-                </Text>
-                <RNPickerSelect
-                  onValueChange={(value) => setServiceType(value)}
-                  items={[
-                    { label: "Hair Salon", value: "hair_salon" },
-                    { label: "Spa", value: "spa" },
-                    { label: "Barbershop", value: "barbershop" },
-                    { label: "Nail Salon", value: "nail_salon" },
-                    { label: "Massage Therapy", value: "massage" },
-                    { label: "Beauty Salon", value: "beauty_salon" },
-                    { label: "Other", value: "other" },
-                  ]}
-                  placeholder={{ label: "Select Service Type", value: null }}
-                  style={{
-                    inputIOS: tw`w-full p-4 border border-gray-300 rounded-lg`,
-                    inputAndroid: tw`w-full p-4 border border-gray-300 rounded-lg`,
-                  }}
-                  value={serviceType}
-                />
-              </View>
-              {errors.serviceType && (
-                <Text style={tw`text-red-500 text-sm mb-2`}>
-                  {errors.serviceType}
-                </Text>
-              )}
-
-              {/* Business Address (Mock Map Selection) */}
-              <Text style={tw`text-lg text-gray-900 mb-2`}>
-                Business Address *
-              </Text>
-              <TextInput
-                placeholder="Select Address (Map)"
-                value={businessAddress}
-                onChangeText={setBusinessAddress}
-                style={tw`w-full p-4 border border-gray-300 rounded-lg mb-4 ${
-                  errors.businessAddress ? "border-red-500" : ""
-                }`}
-                placeholderTextColor="#999"
-              />
-              {errors.businessAddress && (
-                <Text style={tw`text-red-500 text-sm mb-2`}>
-                  {errors.businessAddress}
-                </Text>
-              )}
-
-              {/* Business Days Open */}
-              <Text style={tw`text-lg text-gray-900 mb-2`}>
-                Business Days Open *
-              </Text>
-              <View style={tw`flex-row flex-wrap justify-between mb-4`}>
-                {daysOptions.map((day) => (
-                  <TouchableOpacity
-                    key={day.value}
-                    style={tw`p-3 border border-gray-300 rounded-full mb-2 ${
-                      businessDaysOpen.includes(day.value)
-                        ? "bg-blue-500 border-blue-500"
-                        : ""
-                    }`}
-                    onPress={() => toggleDaySelection(day.value)}>
-                    <Text
-                      style={tw`text-gray-900 ${
-                        businessDaysOpen.includes(day.value) ? "text-white" : ""
-                      }`}>
-                      {day.label.substring(0, 3)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {errors.businessDaysOpen && (
-                <Text style={tw`text-red-500 text-sm mb-2`}>
-                  {errors.businessDaysOpen}
-                </Text>
-              )}
-
-              {/* Business Hours */}
-              <Text style={tw`text-lg text-gray-900 mb-2`}>
-                Business Hours *
-              </Text>
-              <View style={tw`flex-row justify-between mb-4`}>
-                <View style={tw`w-1/2 pr-2`}>
-                  <Text style={tw`text-sm text-gray-900 mb-1`}>
-                    Opening Time:
-                  </Text>
-                  <TextInput
-                    placeholder="09:00"
-                    value={businessHours.open}
-                    onChangeText={(text) =>
-                      setBusinessHours({ ...businessHours, open: text })
-                    }
-                    style={tw`w-full p-4 border border-gray-300 rounded-lg ${
-                      errors.businessHours ? "border-red-500" : ""
-                    }`}
-                    placeholderTextColor="#999"
-                  />
-                </View>
-                <View style={tw`w-1/2 pl-2`}>
-                  <Text style={tw`text-sm text-gray-900 mb-1`}>
-                    Closing Time:
-                  </Text>
-                  <TextInput
-                    placeholder="17:00"
-                    value={businessHours.close}
-                    onChangeText={(text) =>
-                      setBusinessHours({ ...businessHours, close: text })
-                    }
-                    style={tw`w-full p-4 border border-gray-300 rounded-lg ${
-                      errors.businessHours ? "border-red-500" : ""
-                    }`}
-                    placeholderTextColor="#999"
-                  />
-                </View>
-              </View>
-              {errors.businessHours && (
-                <Text style={tw`text-red-500 text-sm mb-2`}>
-                  {errors.businessHours}
-                </Text>
-              )}
-            </View>
-          )}
 
           {/* Sign Up Button */}
           <TouchableOpacity
