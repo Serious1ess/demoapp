@@ -129,58 +129,6 @@ export const handleSignup = async (
     Alert.alert("Error", error.message || "An unexpected error occurred.");
   }
 };
-// for saving new service data
-export const saveUserServiceData = async (userId, businessInfo) => {
-  if (!userId || !businessInfo) {
-    console.error("Missing userId or businessInfo");
-    return;
-  }
-
-  try {
-    if (
-      !businessInfo.businessHours ||
-      !businessInfo.businessHours.open ||
-      !businessInfo.businessHours.close
-    ) {
-      console.error("Missing business hours information");
-      return;
-    }
-
-    // Convert "9:30:00 AM" -> "09:30:00" (24-hour format)
-    const convertTo24HourFormat = (timeStr) => {
-      if (!timeStr) return null;
-      const date = new Date(`1970-01-01 ${timeStr}`);
-      return date.toTimeString().split(" ")[0]; // Extract HH:MM:SS
-    };
-
-    const businessData = {
-      user_id: userId,
-      service_type: businessInfo.serviceType,
-      business_address: businessInfo.businessAddress,
-      business_days_open: businessInfo.businessDaysOpen, // Should be an array
-      opening_time: convertTo24HourFormat(businessInfo.businessHours.open),
-      closing_time: convertTo24HourFormat(businessInfo.businessHours.close),
-    };
-
-    if (!businessData.opening_time || !businessData.closing_time) {
-      console.error("Opening or closing time is invalid:", businessData);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("services")
-      .insert([businessData]);
-
-    if (error) {
-      throw error;
-    }
-
-    console.log("Service data saved successfully:", data);
-    return data;
-  } catch (error) {
-    console.error("Error saving business data:", error.message);
-  }
-};
 
 export const handleLogout = async (setUser, navigation) => {
   try {
@@ -189,24 +137,5 @@ export const handleLogout = async (setUser, navigation) => {
     navigation.replace("Login"); // Navigate to the login screen
   } catch (error) {
     console.error("Error logging out:", error.message);
-  }
-};
-export const fetchBusinessCustomers = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(
-        "id, full_name, phone, services:services(id, service_type, business_address, business_days_open, opening_time, closing_time)"
-      )
-      .eq("is_business", true); // Only fetch business customers
-
-    if (error) {
-      throw error;
-    }
-
-    return data; // List of business customers with their services
-  } catch (error) {
-    console.error("Error fetching business customers:", error.message);
-    return [];
   }
 };

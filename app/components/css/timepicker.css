@@ -1,0 +1,27 @@
+.custom-time-picker {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+}
+
+.custom-time-picker__inputGroup {
+  min-width: auto !important;
+}
+
+.custom-time-picker__input {
+  font-size: 16px !important;
+  color: #374151 !important;
+}
+
+.time-picker-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.time-picker-container {
+  margin-bottom: 16px;
+}

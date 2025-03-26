@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import CustomerList from "../../components/FlatList";
-import { fetchBusinessCustomers } from "../../supabase/auth";
+import { fetchBusinessCustomers } from "../../supabase/customer";
 // Define the type for our navigation
 type RootStackParamList = {
   Home: undefined;

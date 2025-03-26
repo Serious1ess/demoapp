@@ -24,7 +24,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {user?.isBusiness && (
         <Button
-          title="Add Service"
+          title="Service"
           onPress={() => navigation.navigate("ServiceScreen")}
         />
       )}
