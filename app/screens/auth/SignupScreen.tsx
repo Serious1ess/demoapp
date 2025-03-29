@@ -122,29 +122,29 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     }
 
     // Turkish ID validation
-    if (idNumber) {
-      // First check the algorithm
-      if (!turkishIdValidator.idValidation(idNumber)) {
-        newErrors.idNumber = "Invalid Turkish ID number";
-      } else {
-        // Then perform the mock online validation
-        try {
-          const isValidId = await turkishIdValidator.identityValidation({
-            identity: idNumber,
-            name: name,
-            surname: surname,
-            year: parseInt(birthday),
-          });
+    // if (idNumber) {
+    //   // First check the algorithm
+    //   if (!turkishIdValidator.idValidation(idNumber)) {
+    //     newErrors.idNumber = "Invalid Turkish ID number";
+    //   } else {
+    //     // Then perform the mock online validation
+    //     try {
+    //       const isValidId = await turkishIdValidator.identityValidation({
+    //         identity: idNumber,
+    //         name: name,
+    //         surname: surname,
+    //         year: parseInt(birthday),
+    //       });
 
-          if (!isValidId) {
-            newErrors.idNumber = "ID verification failed";
-          }
-        } catch (error) {
-          newErrors.idNumber = "ID verification error";
-          console.error("ID validation error:", error);
-        }
-      }
-    }
+    //       if (!isValidId) {
+    //         newErrors.idNumber = "ID verification failed";
+    //       }
+    //     } catch (error) {
+    //       newErrors.idNumber = "ID verification error";
+    //       console.error("ID validation error:", error);
+    //     }
+    //   }
+    // }
 
     // Calculate minimum birth year (18 years ago from current year)
     const currentYear = new Date().getFullYear();

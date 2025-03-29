@@ -24,7 +24,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.title}>Planit</Text>
       <Text style={styles.subtitle}>Login to your account</Text>
 
       {/* Email Input */}
