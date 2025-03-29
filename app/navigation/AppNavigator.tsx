@@ -7,6 +7,7 @@ import { useUser } from "../context/UserContext"; // Import useUser
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
+import VerifyEmailScreen from "../screens/auth/VerifyEmailScreen";
 import ServiceScreen from "../screens/bussinssScreen/AddServiceScreen";
 import BusinessHome from "../screens/bussinssScreen/BusinessHome";
 import AppointmentConfirmationScreen from "../screens/customerScreen/AppointmentConfirmationScreen";
@@ -108,6 +109,11 @@ const AppNavigator = () => {
       <Stack.Screen name="LoginSelect" component={LoginSelectScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen
+        name="VerifyEmail"
+        component={VerifyEmailScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="HomeTabs" component={HomeTabs} />
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
     </Stack.Navigator>

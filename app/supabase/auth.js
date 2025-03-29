@@ -1,7 +1,7 @@
 import { Alert } from "react-native";
-import { supabase } from "./supabase"; // Import Supabase client
+import { supabase } from "./supabase";
+import { getFileInfo, readFile } from "./utils/fileUtils";
 
-// Login function
 export const handleLogin = async (email, password, setUser, navigation) => {
   if (!email || !password) {
     Alert.alert("Error", "Please fill in all fields.");
@@ -16,120 +16,144 @@ export const handleLogin = async (email, password, setUser, navigation) => {
         password,
       });
 
-    if (authError) {
-      throw authError;
-    }
+    if (authError) throw authError;
 
-    // Step 2: Fetch the user's role from the `roles` table
-    const { data: role, error: roleError } = await supabase
+    // Step 2: Fetch the user's complete profile data
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("is_business")
-      .eq("id", authData.user.id) // Use the logged-in user's ID
+      .select("*")
+      .eq("id", authData.user.id)
       .single();
 
-    if (roleError) {
-      throw roleError;
-    }
+    if (profileError) throw profileError;
 
-    // Step 3: Save the user's data to the context
+    // Step 3: Save the complete user data to context
     setUser({
       ...authData.user,
-      isBusiness: role?.is_business || false, // Add the is_business flag
+      ...profile, // Include all profile fields
+      isBusiness: profile?.is_business || false,
     });
 
-    // Step 4: Navigate to the appropriate screen based on the role
-    navigation.replace("HomeTabs"); // Navigate to the regular home screen
+    // Step 4: Navigate to home
+    navigation.replace("HomeTabs");
   } catch (error) {
     Alert.alert("Error", error.message || "An unexpected error occurred.");
   }
 };
 
 export const handleSignup = async (
-  email,
-  password,
-  fullName,
-  phone,
-  idNumber,
-  profilePicture,
-  isBusiness,
-  setWaitingForVerification,
-  navigation
+  email: string,
+  password: string,
+  name: string, // Changed from firstName
+  surname: string, // Changed from lastName
+  phone: string,
+  idNumber: string,
+  profilePicture: string | null,
+  birthYear: string,
+  setWaitingForVerification: (value: boolean) => void,
+  isBusiness: boolean,
+  navigation: any
 ) => {
-  if (!email || !password || !fullName || !phone || !idNumber) {
+  if (
+    !email ||
+    !password ||
+    !name ||
+    !surname ||
+    !phone ||
+    !idNumber ||
+    !birthYear
+  ) {
     Alert.alert("Error", "Please fill in all required fields.");
     return;
   }
 
   try {
-    // Step 1: Sign up the user with Supabase Auth
+    // Step 1: Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: fullName, // Add additional user metadata
+          full_name: `${name} ${surname}`,
+          first_name: name,
+          last_name: surname,
         },
       },
     });
 
-    if (authError) {
-      throw authError;
-    }
+    if (authError) throw authError;
+    if (!authData.user) throw new Error("User creation failed");
 
-    // Step 2: Upload profile picture if provided
     let profilePictureUrl = null;
     if (profilePicture) {
       try {
-        const response = await fetch(profilePicture);
-        const blob = await response.blob();
-        const fileExt = profilePicture.split(".").pop();
-        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `profiles/${fileName}`;
-
-        const { data, error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(filePath, blob);
-
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from("avatars")
-            .getPublicUrl(filePath);
-          profilePictureUrl = urlData?.publicUrl;
+        // Get file info
+        const fileInfo = await getFileInfo(profilePicture);
+        if (fileInfo.size > 20 * 1024 * 1024) {
+          throw new Error("Profile picture must be less than 20MB");
         }
-      } catch (imageError) {
-        console.error("Error processing image:", imageError);
+
+        const fileExt = profilePicture.split(".").pop()?.toLowerCase() || "jpg";
+        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+
+        // Read file content
+        const fileContent = await readFile(profilePicture);
+
+        // Upload with proper authentication
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(fileName, fileContent, {
+            contentType: fileInfo.mimeType || `image/${fileExt}`,
+            upsert: false,
+            cacheControl: "3600",
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("avatars").getPublicUrl(uploadData.path);
+
+        profilePictureUrl = publicUrl;
+      } catch (error) {
+        console.error("Image upload error:", error);
+        Alert.alert(
+          "Upload Error",
+          error.message || "Failed to upload profile picture"
+        );
       }
     }
 
-    // Step 3: Insert the user's profile into the `profiles` table
-    const profileData = {
+    // Step 3: Create profile
+    const { error: profileError } = await supabase.from("profiles").insert({
       id: authData.user.id,
-      full_name: fullName,
-      phone: phone,
+      full_name: `${name} ${surname}`,
+      first_name: name,
+      last_name: surname,
+      phone,
       id_number: idNumber,
       profile_picture: profilePictureUrl,
+      birth_year: parseInt(birthYear),
+      country: "Turkey",
       is_business: isBusiness,
-    };
+    });
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert([profileData]);
-    if (profileError) {
-      throw profileError;
-    }
+    if (profileError) throw profileError;
 
-    // Step 4: Show verification message
+    // Step 4: Show success
     setWaitingForVerification(true);
-    Alert.alert(
-      "Verify Your Email",
-      "A verification link has been sent to your email. Please verify your email to continue.",
-      [{ text: "OK", onPress: () => navigation.replace("Login") }]
-    );
+    navigation.replace("VerifyEmail", { email });
   } catch (error) {
-    Alert.alert("Error", error.message || "An unexpected error occurred.");
+    console.error("Signup error:", error);
+    Alert.alert("Error", error.message || "Signup failed. Please try again.");
+
+    // Clean up if possible
+    if (supabase.auth.getSession()) {
+      await supabase.auth.signOut();
+    }
   }
 };
-
 export const handleLogout = async (setUser, navigation) => {
   try {
     await supabase.auth.signOut(); // Sign out the user
