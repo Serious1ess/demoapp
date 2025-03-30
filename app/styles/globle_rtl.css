@@ -1,6 +1,9 @@
+* {
+  direction: rtl;
+  text-align: right;
+}
 .react-datepicker {
   width: 100% !important;
-
   margin-top: 20px;
 }
 

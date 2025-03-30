@@ -1,10 +1,10 @@
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import tw from "tailwind-react-native-classnames";
 import LanguageSelector from "../components/LanguageSelector";
 import { useUser } from "../context/UserContext";
-import { ActivityIndicator } from "react-native-paper";
 
 const ProfileScreen = ({ navigation }) => {
   const { user, loading } = useUser();

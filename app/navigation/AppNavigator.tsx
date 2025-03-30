@@ -2,8 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 import { useUser } from "../context/UserContext"; // Import useUser
-
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
@@ -45,16 +46,44 @@ const ProfileStack = createStackNavigator();
 
 const ProfileStackNavigator = () => {
   return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfileStack.Screen name="Profile" component={ProfileScreen} />
-      <ProfileStack.Screen name="ServiceScreen" component={ServiceScreen} />
+    <ProfileStack.Navigator
+      screenOptions={({ navigation }) => ({
+        headerShown: true,
+        headerTitleAlign: "center",
+        headerStyle: { backgroundColor: "#007BFF" },
+        headerTintColor: "#fff",
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{ marginLeft: 15 }}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => console.log("Notification pressed")}
+            style={{ marginRight: 15 }}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+      })}>
+      <ProfileStack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: "My Profile" }}
+      />
+      <ProfileStack.Screen
+        name="ServiceScreen"
+        component={ServiceScreen}
+        options={{ title: "Services" }}
+      />
     </ProfileStack.Navigator>
   );
 };
 
-// Bottom Tabs with Language Selector in Header
+// Bottom Tabs with custom header
 const HomeTabs = () => {
-  const { user } = useUser(); // Access user data from context
+  const { user } = useUser();
 
   return (
     <Tab.Navigator
@@ -64,14 +93,22 @@ const HomeTabs = () => {
         headerTintColor: "#fff",
         tabBarActiveTintColor: "#007BFF",
         tabBarInactiveTintColor: "#666",
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => console.log("Notification pressed")}
+            style={{ marginRight: 15 }}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
       }}>
       <Tab.Screen
         name="Home"
-        component={user?.isBusiness ? BusinessHome : CustomerBookingNavigator} // Use the nested navigator for customer screens
+        component={user?.isBusiness ? BusinessHome : CustomerBookingNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" color={color} size={size} />
           ),
+          title: user?.isBusiness ? "Business Dashboard" : "Book Services",
         }}
       />
       <Tab.Screen
@@ -81,6 +118,8 @@ const HomeTabs = () => {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" color={color} size={size} />
           ),
+          title: "My Profile",
+          headerShown: false, // Hide header here since ProfileStack has its own
         }}
       />
     </Tab.Navigator>
@@ -88,23 +127,26 @@ const HomeTabs = () => {
 };
 
 const AppNavigator = () => {
-  const { user } = useUser(); // Access user data from context
-  const [initialRoute, setInitialRoute] = useState("LoginSelect"); // Default initial route
+  const { user, loading } = useUser();
+  const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    // Check if a user is already logged in
-    if (user) {
-      console.log(user);
-      setInitialRoute("HomeTabs"); // Navigate to HomeTabs if user exists
+    if (!loading) {
+      setInitialRoute(user ? "HomeTabs" : "LoginSelect");
     }
-    // } else {
-    //   setInitialRoute("LoginSelect"); // Navigate to LoginSelect if no user exists
-    // }
-  }, [user]);
+  }, [user, loading]);
+
+  if (initialRoute === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator
-      initialRouteName={initialRoute} // Set the initial route based on user state
+      initialRouteName={initialRoute}
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="LoginSelect" component={LoginSelectScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
@@ -114,7 +156,11 @@ const AppNavigator = () => {
         component={VerifyEmailScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="HomeTabs" component={HomeTabs} />
+      <Stack.Screen
+        name="HomeTabs"
+        component={HomeTabs}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
     </Stack.Navigator>
   );

@@ -1,6 +1,7 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +19,6 @@ import tw from "tailwind-react-native-classnames";
 import CustomPicker from "../../components/CustomPicker"; // Import your CustomPicker component
 import TurkishIdentityValidation from "../../context/turkishIdcheck";
 import { handleSignup } from "../../supabase/auth";
-
 interface FormErrors {
   email?: string;
   password?: string;
@@ -39,6 +39,7 @@ interface SignupScreenProps {
 }
 
 const SignupScreen = ({ navigation }: SignupScreenProps) => {
+  const intl = useIntl();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -191,16 +192,12 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     }
   };
 
-  const formatYearOnly = (date: Date | null) => {
-    if (!date) return "";
-    return date.getFullYear().toString();
-  };
   const turkishIdValidator = new TurkishIdentityValidation();
   if (waitingForVerification) {
     return (
       <View style={tw`flex-1 justify-center items-center bg-gray-100`}>
         <Text style={tw`text-lg text-gray-800 mb-4`}>
-          Please verify your email to continue.
+          {intl.formatMessage({ id: "verifyEmailPrompt" })}
         </Text>
         <ActivityIndicator size="large" color="#007bff" />
       </View>
@@ -218,17 +215,17 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
         <View style={tw`max-w-md w-full mx-auto`}>
           <View style={tw`mb-8`}>
             <Text style={tw`text-3xl font-bold text-gray-900 mb-2`}>
-              Create Your Account
+              {intl.formatMessage({ id: "createAccount" })}
             </Text>
             <Text style={tw`text-lg text-gray-600`}>
-              Join us to get started
+              {intl.formatMessage({ id: "joinUs" })}
             </Text>
           </View>
 
           {/* Name */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Name"
+              placeholder={intl.formatMessage({ id: "name" })}
               value={name}
               onChangeText={setName}
               style={tw`w-full p-4 border border-gray-300 rounded-lg ${
@@ -244,7 +241,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* Surname */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Surname"
+              placeholder={intl.formatMessage({ id: "surname" })}
               value={surname}
               onChangeText={setSurname}
               style={tw`w-full p-4 border border-gray-300 rounded-lg ${
@@ -262,7 +259,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* Email */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Email"
+              placeholder={intl.formatMessage({ id: "EML" })}
               value={email}
               onChangeText={setEmail}
               style={tw`w-full p-4 border border-gray-300 rounded-lg ${
@@ -279,7 +276,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* Password */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Password"
+              placeholder={intl.formatMessage({ id: "PSSWRD" })}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -297,25 +294,23 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* Phone Number */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Phone Number (e.g., +905551234567 or 00905551234567)"
+              placeholder={intl.formatMessage({ id: "phonePlaceholder" })}
               value={phone}
               onChangeText={(text) => {
-                // Allow only numbers, +, and 00 prefix
                 const formatted = text
-                  .replace(/[^0-9+]/g, "") // Remove all non-numeric and non-plus characters
-                  .replace(/(?!^\+)^\+/g, "") // Allow only one + at start
-                  .replace(/^00/, "00") // Keep 00 prefix
-                  .replace(/^([^0+]).*/, "$1") // Don't allow first character other than 0 or +
-                  .replace(/^0([^0]).*/, "0$1") // If starts with 0, next must be 0 (for 00)
-                  .replace(/^\+([^0-9]).*/, "+"); // After +, must be number
-
+                  .replace(/[^0-9+]/g, "")
+                  .replace(/(?!^\+)^\+/g, "")
+                  .replace(/^00/, "00")
+                  .replace(/^([^0+]).*/, "$1")
+                  .replace(/^0([^0]).*/, "0$1")
+                  .replace(/^\+([^0-9]).*/, "+");
                 setPhone(formatted);
               }}
               style={tw`w-full p-4 border border-gray-300 rounded-lg ${
                 errors.phone ? "border-red-500" : ""
               }`}
               keyboardType="phone-pad"
-              maxLength={15} // Reasonable max length for international numbers
+              maxLength={15}
             />
             {errors.phone && (
               <Text style={tw`text-red-500 text-sm mt-1`}>{errors.phone}</Text>
@@ -325,10 +320,9 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* ID Number */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Turkish ID Number"
+              placeholder={intl.formatMessage({ id: "turkishIdPlaceholder" })}
               value={idNumber}
               onChangeText={(text) => {
-                // Only allow numbers
                 const numbersOnly = text.replace(/[^0-9]/g, "");
                 setIdNumber(numbersOnly);
               }}
@@ -348,42 +342,37 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           {/* Birthday (Year Only) */}
           <View style={tw`mb-4`}>
             <TextInput
-              placeholder="Enter year of birth (YYYY)"
+              placeholder={intl.formatMessage({ id: "birthYearPlaceholder" })}
               value={birthday}
-              style={tw`w-full p-4 border border-gray-300 rounded-lg ${
-                errors.birthday ? "border-red-500" : ""
-              }`}
-              maxLength={4}
               onChangeText={(input) => {
-                // Only allow numbers
-                const numbersOnly = input.replace(/[^0-9]/g, "");
-
-                // Validate it starts with 19 or 20 (for years 1900-2099)
-                let validated = numbersOnly;
+                let numbersOnly = input.replace(/[^0-9]/g, "");
                 if (
                   numbersOnly.length >= 1 &&
                   !["1", "2"].includes(numbersOnly[0])
                 ) {
-                  validated = "";
+                  numbersOnly = "";
                 }
                 if (
                   numbersOnly.length >= 2 &&
                   numbersOnly[0] === "1" &&
                   numbersOnly[1] !== "9"
                 ) {
-                  validated = numbersOnly.slice(0, 1);
+                  numbersOnly = numbersOnly.slice(0, 1);
                 }
                 if (
                   numbersOnly.length >= 2 &&
                   numbersOnly[0] === "2" &&
                   numbersOnly[1] !== "0"
                 ) {
-                  validated = numbersOnly.slice(0, 1);
+                  numbersOnly = numbersOnly.slice(0, 1);
                 }
-
-                setBirthday(validated);
+                setBirthday(numbersOnly);
               }}
+              style={tw`w-full p-4 border border-gray-300 rounded-lg ${
+                errors.birthday ? "border-red-500" : ""
+              }`}
               keyboardType="numeric"
+              maxLength={4}
             />
             {errors.birthday && (
               <Text style={tw`text-red-500 text-sm mt-1`}>
@@ -391,12 +380,13 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
               </Text>
             )}
           </View>
-          {/* Country Picker (Turkey only) */}
+
+          {/* Country Picker */}
           <CustomPicker
             value={country}
             options={countryOptions}
             onChange={setCountry}
-            placeholder="Select Country"
+            placeholder={intl.formatMessage({ id: "selectCountry" })}
             error={errors.country}
           />
 
@@ -412,7 +402,9 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
                   resizeMode="cover"
                 />
               ) : (
-                <Text style={tw`text-gray-600`}>Select Profile Picture</Text>
+                <Text style={tw`text-gray-600`}>
+                  {intl.formatMessage({ id: "selectProfilePicture" })}
+                </Text>
               )}
             </TouchableOpacity>
             {errors.profilePicture && (
@@ -421,9 +413,12 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
               </Text>
             )}
           </View>
+
           {/* Business Account Toggle */}
           <View style={tw`flex-row justify-between items-center w-full mb-4`}>
-            <Text style={tw`text-lg text-gray-900`}>Business Account</Text>
+            <Text style={tw`text-lg text-gray-900`}>
+              {intl.formatMessage({ id: "businessAccount" })}
+            </Text>
             <Switch
               value={isBusiness}
               onValueChange={setIsBusiness}
@@ -431,6 +426,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
               thumbColor={isBusiness ? "#fff" : "#f4f3f4"}
             />
           </View>
+
           {/* Sign Up Button */}
           <TouchableOpacity
             style={tw`w-full p-4 bg-blue-500 rounded-lg mb-4`}
@@ -440,18 +436,20 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={tw`text-white text-center text-lg font-bold`}>
-                Sign Up
+                {intl.formatMessage({ id: "signUp" })}
               </Text>
             )}
           </TouchableOpacity>
 
           {/* Login Link */}
           <TouchableOpacity
-            onPress={() => navigation.navigate("VerifyEmail", { email })}
+            onPress={() => navigation.navigate("Login")}
             style={tw`mb-4`}>
             <Text style={tw`text-gray-600 text-center`}>
-              Already have an account?{" "}
-              <Text style={tw`text-blue-500 font-bold`}>Login</Text>
+              {intl.formatMessage({ id: "alreadyHaveAccount" })}{" "}
+              <Text style={tw`text-blue-500 font-bold`}>
+                {intl.formatMessage({ id: "login" })}
+              </Text>
             </Text>
           </TouchableOpacity>
         </View>

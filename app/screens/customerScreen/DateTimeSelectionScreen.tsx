@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import "../../globle.css"; // Adjust the path as needed
+// import "../../globle.css"; // Adjust the path as needed
 // import DatePicker from "react-native-date-picker"; // For Android and iOS
 import DateTimePicker from "@react-native-community/datetimepicker";
 import tw from "tailwind-react-native-classnames";

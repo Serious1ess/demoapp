@@ -1,4 +1,5 @@
 import React from "react";
+import { useIntl } from "react-intl";
 import {
   ActivityIndicator,
   FlatList,
@@ -30,6 +31,8 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onSearchChange,
   onCustomerPress,
 }) => {
+  const intl = useIntl();
+  const formatMessage = intl.formatMessage;
   // Filter customers based on search query
   const filteredCustomers = searchQuery
     ? customers.filter(
@@ -44,8 +47,8 @@ const CustomerList: React.FC<CustomerListProps> = ({
   return (
     <View style={tw`flex-1 p-4`}>
       <TextInput
-        style={tw`h-12 border border-gray-300 rounded-lg px-4 mb-6`}
-        placeholder="Search customers..."
+        style={tw`h-12 border border-gray-300 rounded-lg px-4 mb-6 `}
+        placeholder={formatMessage({ id: "Search" })}
         placeholderTextColor="#9CA3AF"
         value={searchQuery}
         onChangeText={onSearchChange}

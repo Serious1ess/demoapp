@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import { View } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import CustomerList from "../../components/FlatList";

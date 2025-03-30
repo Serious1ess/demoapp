@@ -1,13 +1,16 @@
 import React from "react";
 import { LocaleProvider } from "./context/i18n";
-import { UserProvider } from "./context/UserContext"; // Import UserProvider
+import { UserProvider } from "./context/UserContext";
 import AppNavigator from "./navigation/AppNavigator";
+import StyleWrapper from "./context/StyleWrapper";
 
 const App = () => {
   return (
     <UserProvider>
       <LocaleProvider>
-        <AppNavigator />
+        <StyleWrapper>
+          <AppNavigator />
+        </StyleWrapper>
       </LocaleProvider>
     </UserProvider>
   );

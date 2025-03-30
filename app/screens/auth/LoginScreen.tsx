@@ -1,20 +1,23 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
+import { useIntl } from "react-intl";
 import {
   ActivityIndicator,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useUser } from "../../context/UserContext"; // Import useUser
-import { handleLogin } from "../../supabase/auth"; // Import handleLogin
+import tw from "tailwind-react-native-classnames";
+import { useUser } from "../../context/UserContext";
+import { handleLogin } from "../../supabase/auth";
 
 const LoginScreen = ({ navigation }) => {
+  const intl = useIntl();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setUser } = useUser(); // Access setUser from UserContext
+  const { setUser } = useUser();
 
   const onLogin = async () => {
     setLoading(true);
@@ -23,16 +26,30 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Planit</Text>
-      <Text style={styles.subtitle}>Login to your account</Text>
+    <View style={tw`flex-1 justify-center items-center bg-gray-100 p-5`}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("LoginSelect")}
+        style={tw`p-2 ${intl.locale === "ar" ? "ml-4" : "mr-4"}`}>
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="#007BFF"
+          style={{ transform: [{ scaleX: intl.locale === "ar" ? -1 : 1 }] }}
+        />
+      </TouchableOpacity>
+      <Text style={tw`text-3xl font-bold mb-2 text-gray-800`}>
+        {intl.formatMessage({ id: "appName" })}
+      </Text>
+      <Text style={tw`text-base mb-8 text-gray-600`}>
+        {intl.formatMessage({ id: "loginSubtitle" })}
+      </Text>
 
       {/* Email Input */}
       <TextInput
-        placeholder="Email"
+        placeholder={intl.formatMessage({ id: "EML" })}
         value={email}
         onChangeText={setEmail}
-        style={styles.input}
+        style={tw`w-full p-4 border border-gray-300 rounded-lg mb-4 bg-white text-gray-800`}
         autoCapitalize="none"
         keyboardType="email-address"
         placeholderTextColor="#999"
@@ -40,90 +57,40 @@ const LoginScreen = ({ navigation }) => {
 
       {/* Password Input */}
       <TextInput
-        placeholder="Password"
+        placeholder={intl.formatMessage({ id: "PSSWRD" })}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={styles.input}
+        style={tw`w-full p-4 border border-gray-300 rounded-lg mb-4 bg-white text-gray-800`}
         autoCapitalize="none"
         placeholderTextColor="#999"
       />
 
       {/* Login Button */}
       <TouchableOpacity
-        style={styles.button}
+        style={tw`w-full p-4 bg-blue-500 rounded-lg mb-6 items-center`}
         onPress={onLogin}
         disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={tw`text-white font-bold text-lg`}>
+            {intl.formatMessage({ id: "signIn" })}
+          </Text>
         )}
       </TouchableOpacity>
 
       {/* Sign Up Link */}
       <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-        <Text style={styles.link}>
-          Don't have an account? <Text style={styles.linkBold}>Sign up</Text>
+        <Text style={tw`text-gray-600`}>
+          {intl.formatMessage({ id: "DNTHVANACCNT" })}{" "}
+          <Text style={tw`font-bold text-blue-500`}>
+            {intl.formatMessage({ id: "signUp" })}
+          </Text>
         </Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 30,
-  },
-  input: {
-    width: "100%",
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    marginVertical: 10,
-    backgroundColor: "#fff",
-    fontSize: 16,
-    color: "#333",
-  },
-  button: {
-    width: "100%",
-    padding: 15,
-    backgroundColor: "#007bff",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  link: {
-    color: "#666",
-    marginTop: 20,
-    fontSize: 16,
-  },
-  linkBold: {
-    fontWeight: "bold",
-    color: "#007bff",
-  },
-});
 
 export default LoginScreen;
