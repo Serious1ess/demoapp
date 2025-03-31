@@ -35,6 +35,8 @@ interface Service {
 }
 
 const HomeScreen = () => {
+  const intl = useIntl();
+
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const [businessCustomers, setBusinessCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
