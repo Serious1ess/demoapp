@@ -65,7 +65,7 @@ export const handleLogin = async (
     });
 
     // Step 4: Navigate to home
-    navigation.replace("HomeTabs");
+    navigation.replace("MainApp");
   } catch (error) {
     console.error("Login error:", error);
     showAlert(

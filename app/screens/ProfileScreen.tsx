@@ -1,4 +1,5 @@
 import React from "react";
+import { useIntl } from "react-intl";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -7,8 +8,11 @@ import LanguageSelector from "../components/LanguageSelector";
 import { useUser } from "../context/UserContext";
 
 const ProfileScreen = ({ navigation }) => {
-  const { user, loading } = useUser();
-  console.log("User data:", user);
+  const { user, loading, logout } = useUser();
+
+  const intl = useIntl();
+  const locale = useIntl().defaultLocale;
+
   if (loading) {
     return (
       <View style={tw`flex-1 justify-center items-center`}>
@@ -16,20 +20,28 @@ const ProfileScreen = ({ navigation }) => {
       </View>
     );
   }
+
   if (!user) {
     return (
       <View style={tw`flex-1 justify-center items-center p-4`}>
-        <Text style={tw`text-lg mb-4`}>No user logged in</Text>
+        <Text style={tw`text-lg mb-4`}>
+          {intl.formatMessage({ id: "noUserLoggedIn" })}
+        </Text>
         <TouchableOpacity
           style={tw`bg-blue-600 py-3 px-6 rounded-lg`}
           onPress={() => navigation.navigate("Login")}>
-          <Text style={tw`text-white font-bold`}>Go to Login</Text>
+          <Text style={tw`text-white font-bold`}>
+            {intl.formatMessage({ id: "goToLogin" })}
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
+
   return (
-    <ScrollView contentContainerStyle={tw`flex-grow p-4 bg-gray-50`}>
+    <ScrollView
+      contentContainerStyle={tw`flex-grow p-4 bg-gray-50`}
+      style={{ direction: locale === "ar" ? "rtl" : "ltr" }}>
       {/* Profile Header */}
       <View style={tw`items-center mb-8`}>
         {user?.profile_picture ? (
@@ -50,7 +62,7 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={tw`text-2xl font-bold text-gray-800 mb-1`}>
           {user?.full_name ||
             `${user?.first_name} ${user?.last_name}` ||
-            "User"}
+            intl.formatMessage({ id: "user" })}
         </Text>
         <Text style={tw`text-gray-600`}>{user?.email}</Text>
       </View>
@@ -61,21 +73,23 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="call-outline"
             size={20}
-            style={tw`text-blue-500 mr-2`}
+            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
-          <Text style={tw`text-gray-700`}>{user?.phone || "Not provided"}</Text>
+          <Text style={tw`text-gray-700`}>
+            {user?.phone || intl.formatMessage({ id: "notProvided" })}
+          </Text>
         </View>
 
         <View style={tw`flex-row items-center mb-4`}>
           <Ionicons
             name="calendar-outline"
             size={20}
-            style={tw`text-blue-500 mr-2`}
+            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
           <Text style={tw`text-gray-700`}>
             {user?.birth_year
-              ? `Born in ${user.birth_year}`
-              : "Birth year not set"}
+              ? intl.formatMessage({ id: "bornIn" }, { year: user.birth_year })
+              : intl.formatMessage({ id: "birthYearNotSet" })}
           </Text>
         </View>
 
@@ -83,9 +97,11 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="location-outline"
             size={20}
-            style={tw`text-blue-500 mr-2`}
+            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
-          <Text style={tw`text-gray-700`}>{user?.country || "Turkey"}</Text>
+          <Text style={tw`text-gray-700`}>
+            {user?.country || intl.formatMessage({ id: "defaultCountry" })}
+          </Text>
         </View>
 
         {user?.id_number && (
@@ -93,10 +109,11 @@ const ProfileScreen = ({ navigation }) => {
             <Ionicons
               name="id-card-outline"
               size={20}
-              style={tw`text-blue-500 mr-2`}
+              style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
             />
             <Text style={tw`text-gray-700`}>
-              ID: ••••••{user.id_number.slice(-4)}
+              {intl.formatMessage({ id: "idNumber" })}: ••••••
+              {user.id_number.slice(-4)}
             </Text>
           </View>
         )}
@@ -109,9 +126,11 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="business-outline"
             size={18}
-            style={tw`text-white mr-2`}
+            style={tw`text-white ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
-          <Text style={tw`text-white font-bold`}>Business Account</Text>
+          <Text style={tw`text-white font-bold`}>
+            {intl.formatMessage({ id: "businessAccount" })}
+          </Text>
         </View>
       )}
 
@@ -122,7 +141,9 @@ const ProfileScreen = ({ navigation }) => {
         <TouchableOpacity
           style={tw`bg-blue-600 py-3 rounded-lg items-center mb-4`}
           onPress={() => navigation.navigate("EditProfile")}>
-          <Text style={tw`text-white font-bold text-lg`}>Edit Profile</Text>
+          <Text style={tw`text-white font-bold text-lg`}>
+            {intl.formatMessage({ id: "editProfile" })}
+          </Text>
         </TouchableOpacity>
 
         {user?.isBusiness && (
@@ -130,15 +151,20 @@ const ProfileScreen = ({ navigation }) => {
             style={tw`bg-gray-600 py-3 rounded-lg items-center mb-4`}
             onPress={() => navigation.navigate("ServiceScreen")}>
             <Text style={tw`text-white font-bold text-lg`}>
-              Manage Services
+              {intl.formatMessage({ id: "manageServices" })}
             </Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
           style={tw`bg-red-500 py-3 rounded-lg items-center`}
-          onPress={() => navigation.replace("Login")}>
-          <Text style={tw`text-white font-bold text-lg`}>Logout</Text>
+          onPress={() => {
+            logout();
+            navigation.navigate("LoginSelect");
+          }}>
+          <Text style={tw`text-white font-bold text-lg`}>
+            {intl.formatMessage({ id: "logout" })}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

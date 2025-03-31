@@ -24,9 +24,9 @@ const LoginSelectScreen = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("HomeTabs")}>
+        onPress={() => navigation.navigate("Signup")}>
         <Text style={styles.buttonText}>
-          {intl.formatMessage({ id: "continueWithoutSignIn" })}
+          {intl.formatMessage({ id: "signUp" })}
         </Text>
       </TouchableOpacity>
 

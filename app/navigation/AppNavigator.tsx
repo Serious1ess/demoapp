@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
-import { useUser } from "../context/UserContext"; // Import useUser
+import { useUser } from "../context/UserContext";
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
@@ -42,6 +42,7 @@ const CustomerBookingNavigator = () => {
     </CustomerStack.Navigator>
   );
 };
+
 const ProfileStack = createStackNavigator();
 
 const ProfileStackNavigator = () => {
@@ -78,6 +79,20 @@ const ProfileStackNavigator = () => {
         options={{ title: "Services" }}
       />
     </ProfileStack.Navigator>
+  );
+};
+
+// Auth Stack - Group all auth screens together
+const AuthStack = createStackNavigator();
+
+const AuthStackNavigator = () => {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Signup" component={SignupScreen} />
+      <AuthStack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+    </AuthStack.Navigator>
   );
 };
 
@@ -119,7 +134,7 @@ const HomeTabs = () => {
             <Ionicons name="person" color={color} size={size} />
           ),
           title: "My Profile",
-          headerShown: false, // Hide header here since ProfileStack has its own
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -132,11 +147,12 @@ const AppNavigator = () => {
 
   useEffect(() => {
     if (!loading) {
-      setInitialRoute(user ? "HomeTabs" : "LoginSelect");
+      setInitialRoute(user ? "MainApp" : "Auth");
+      console.log("Auth state resolved:", user ? "Logged in" : "Not logged in");
     }
   }, [user, loading]);
 
-  if (initialRoute === null) {
+  if (loading || initialRoute === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -148,20 +164,11 @@ const AppNavigator = () => {
     <Stack.Navigator
       initialRouteName={initialRoute}
       screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="LoginSelect" component={LoginSelectScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Signup" component={SignupScreen} />
-      <Stack.Screen
-        name="VerifyEmail"
-        component={VerifyEmailScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="HomeTabs"
-        component={HomeTabs}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="Auth" component={AuthStackNavigator} />
+      <Stack.Screen name="MainApp" component={HomeTabs} />
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
+      <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };
