@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
+
+import { Text } from "react-native";
 import { useUser } from "../context/UserContext";
 import LoginScreen from "../screens/auth/LoginScreen";
 import LoginSelectScreen from "../screens/auth/LoginSelectScreen";
@@ -15,8 +18,8 @@ import AppointmentConfirmationScreen from "../screens/customerScreen/Appointment
 import DateTimeSelectionScreen from "../screens/customerScreen/DateTimeSelectionScreen";
 import HomeScreen from "../screens/customerScreen/HomeScreen";
 import ServiceSelectionScreen from "../screens/customerScreen/ServiceSelectionScreen";
+import NotificationsScreen from "../screens/notification";
 import ProfileScreen from "../screens/ProfileScreen";
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -43,28 +46,43 @@ const CustomerBookingNavigator = () => {
   );
 };
 
+// Auth Stack - Group all auth screens together
+const AuthStack = createStackNavigator();
+
+const AuthStackNavigator = () => {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Signup" component={SignupScreen} />
+      <AuthStack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+    </AuthStack.Navigator>
+  );
+};
 const ProfileStack = createStackNavigator();
 
 const ProfileStackNavigator = () => {
   return (
     <ProfileStack.Navigator
-      screenOptions={({ navigation }) => ({
+      screenOptions={({ navigation: nav }) => ({
+        // Rename to avoid conflict
         headerShown: true,
         headerTitleAlign: "center",
         headerStyle: { backgroundColor: "#007BFF" },
         headerTintColor: "#fff",
         headerLeft: () => (
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => nav.goBack()}
             style={{ marginLeft: 15 }}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
         ),
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => console.log("Notification pressed")}
+            onPress={() => nav.navigate("notification")} // Fixed navigation
             style={{ marginRight: 15 }}>
             <Ionicons name="notifications-outline" size={24} color="#fff" />
+            {/* Add badge if needed */}
           </TouchableOpacity>
         ),
       })}>
@@ -81,24 +99,10 @@ const ProfileStackNavigator = () => {
     </ProfileStack.Navigator>
   );
 };
-
-// Auth Stack - Group all auth screens together
-const AuthStack = createStackNavigator();
-
-const AuthStackNavigator = () => {
-  return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
-      <AuthStack.Screen name="Login" component={LoginScreen} />
-      <AuthStack.Screen name="Signup" component={SignupScreen} />
-      <AuthStack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-    </AuthStack.Navigator>
-  );
-};
-
 // Bottom Tabs with custom header
 const HomeTabs = () => {
-  const { user } = useUser();
+  const { user, notifications } = useUser();
+  const navigation = useNavigation(); // Add this hook
 
   return (
     <Tab.Navigator
@@ -110,9 +114,29 @@ const HomeTabs = () => {
         tabBarInactiveTintColor: "#666",
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => console.log("Notification pressed")}
+            onPress={() => navigation.navigate("notification")} // Fixed navigation
             style={{ marginRight: 15 }}>
-            <Ionicons name="notifications-outline" size={24} color="#fff" />
+            <View style={{ position: "relative" }}>
+              <Ionicons name="notifications-outline" size={24} color="#fff" />
+              {notifications.length > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -5,
+                    top: -5,
+                    backgroundColor: "red",
+                    borderRadius: 10,
+                    width: 18,
+                    height: 18,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}>
+                  <Text style={{ color: "white", fontSize: 10 }}>
+                    {notifications.length}
+                  </Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         ),
       }}>
@@ -166,9 +190,30 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Auth" component={AuthStackNavigator} />
       <Stack.Screen name="MainApp" component={HomeTabs} />
+
+      <Stack.Screen
+        name="notification"
+        component={NotificationsScreen}
+        options={{
+          headerShown: true, // Explicitly show header for this screen
+          title: "Notifications",
+          headerTitleAlign: "center",
+          headerStyle: { backgroundColor: "#007BFF" },
+          headerTintColor: "#fff",
+          headerLeft: ({ onPress }) => (
+            <TouchableOpacity
+              onPress={onPress} // Use the provided onPress handler
+              style={{ marginLeft: 15 }}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
       <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Signup" component={SignupScreen} />
+      <AuthStack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
     </Stack.Navigator>
   );
 };

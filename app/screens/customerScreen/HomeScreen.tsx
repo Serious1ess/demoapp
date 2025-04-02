@@ -4,12 +4,18 @@ import React, { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { View } from "react-native";
 import tw from "tailwind-react-native-classnames";
-import CustomerList from "../../components/FlatList";
-import { fetchBusinessCustomers } from "../../supabase/customer";
+import CustomerList from "../../components/bussnisCustmoersList";
+import {
+  fetchBusinessCustomers,
+  fetchUserServices,
+} from "../../supabase/customer";
 // Define the type for our navigation
 type RootStackParamList = {
   Home: undefined;
-  ServiceSelection: { customer: Customer };
+  ServiceSelection: {
+    customer: Customer;
+    customerServices?: Service[]; // Add this
+  };
   DateTimeSelection: { customer: Customer; selectedServices: Service[] };
   AppointmentConfirmation: {
     customer: Customer;
@@ -18,7 +24,6 @@ type RootStackParamList = {
     selectedTime: string;
   };
 };
-
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 // Match the Customer interface exactly as defined in FlatList.tsx
@@ -55,8 +60,22 @@ const HomeScreen = () => {
   }, []);
 
   // Navigate to ServiceSelection screen instead of showing a modal
-  const handleCustomerPress = (customer: Customer) => {
-    navigation.navigate("ServiceSelection", { customer });
+  const handleCustomerPress = async (customer: Customer) => {
+    try {
+      // Fetch the customer's services
+      const customerServices = await fetchUserServices(customer.id);
+      console.log(customerServices);
+
+      // Navigate with both customer data and their services
+      navigation.navigate("ServiceSelection", {
+        customer,
+        customerServices, // Pass the fetched services
+      });
+    } catch (error) {
+      console.error("Error fetching customer services:", error);
+      // Navigate with just customer data if service fetch fails
+      navigation.navigate("ServiceSelection", { customer });
+    }
   };
   return (
     <View style={tw`flex-1 p-4`}>

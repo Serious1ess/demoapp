@@ -14,6 +14,7 @@ interface ServiceItem {
   id: string;
   name: string;
   price: string;
+  duration: string; // Added duration field
 }
 
 interface ServiceFormProps {
@@ -21,10 +22,12 @@ interface ServiceFormProps {
   setServiceName: (text: string) => void;
   servicePrice: string;
   setServicePrice: (text: string) => void;
+  serviceDuration: string; // New prop for duration
+  setServiceDuration: (text: string) => void; // New prop for duration setter
   errors: { service?: string };
   handleAddService: () => void;
   servicesList: ServiceItem[];
-  onDeleteService: (id: string) => void; // New prop for delete functionality
+  onDeleteService: (id: string) => void;
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
@@ -32,6 +35,8 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   setServiceName,
   servicePrice,
   setServicePrice,
+  serviceDuration,
+  setServiceDuration,
   errors,
   handleAddService,
   servicesList,
@@ -39,7 +44,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 }) => {
   return (
     <>
-      {/* Service Name and Price Input */}
+      {/* Service Name Input */}
       <View style={tw`mt-4`}>
         <Text style={tw`text-lg text-gray-900 mb-2`}>Service Name *</Text>
         <TextInput
@@ -50,6 +55,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         />
       </View>
 
+      {/* Service Price Input */}
       <View style={tw`mt-4`}>
         <Text style={tw`text-lg text-gray-900 mb-2`}>Service Price *</Text>
         <TextInput
@@ -59,6 +65,21 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
           onChangeText={(text) => {
             const cleanedText = text.replace(/[^0-9]/g, "");
             setServicePrice(cleanedText);
+          }}
+          keyboardType="numeric"
+        />
+      </View>
+
+      {/* Service Duration Input */}
+      <View style={tw`mt-4`}>
+        <Text style={tw`text-lg text-gray-900 mb-2`}>Duration (minutes) *</Text>
+        <TextInput
+          style={tw`w-full p-4 border border-gray-300 rounded-lg`}
+          placeholder="Enter duration in minutes"
+          value={serviceDuration}
+          onChangeText={(text) => {
+            const cleanedText = text.replace(/[^0-9]/g, "");
+            setServiceDuration(cleanedText);
           }}
           keyboardType="numeric"
         />
@@ -76,16 +97,23 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       {/* Services List */}
       <View style={tw`mt-4`}>
         <Text style={tw`text-lg text-gray-900 mb-2`}>Services List</Text>
-        <View style={{ height: servicesList.length * 60 }}>
+        <View style={{ height: servicesList.length * 80 }}>
           <FlatList
             data={servicesList}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View
-                style={tw`flex-row justify-between items-center p-2 border-b border-gray-200`}>
+                style={tw`flex-row justify-between items-center p-3 border-b border-gray-200`}>
                 <View style={tw`flex-1`}>
-                  <Text style={tw`text-gray-700`}>{item.name}</Text>
-                  <Text style={tw`text-gray-500 text-sm`}>{item.price} TL</Text>
+                  <Text style={tw`text-gray-700 font-medium`}>{item.name}</Text>
+                  <View style={tw`flex-row justify-between mt-1`}>
+                    <Text style={tw`text-gray-500 text-sm`}>
+                      {item.price} TL
+                    </Text>
+                    <Text style={tw`text-gray-500 text-sm`}>
+                      {item.duration} mins
+                    </Text>
+                  </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => onDeleteService(item.id)}

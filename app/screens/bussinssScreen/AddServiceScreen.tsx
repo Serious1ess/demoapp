@@ -24,6 +24,7 @@ interface ServiceItem {
   id: string;
   name: string;
   price: string;
+  duration: string;
 }
 
 const ServiceScreen = ({ navigation }) => {
@@ -46,21 +47,20 @@ const ServiceScreen = ({ navigation }) => {
         setIsLoading(true);
         const servicesData = await fetchUserServices(user.id);
 
-        if (servicesData?.length > 0) {
-          const firstService = servicesData[0]; // Get most recent
-
+        if (servicesData) {
+          console.log("firstService", servicesData);
           // Set all form fields
-          setServiceType(firstService.service_type || "");
-          setBusinessAddress(firstService.business_address || "");
-          setBusinessDaysOpen(firstService.business_days_open || []);
+          setServiceType(servicesData.service_type || "");
+          setBusinessAddress(servicesData.business_address || "");
+          setBusinessDaysOpen(servicesData.business_days_open || []);
           setBusinessHours({
-            open: firstService.business_hours.open || "09:00:00",
-            close: firstService.business_hours.close || "18:00:00",
+            open: servicesData.business_hours.open || "09:00:00",
+            close: servicesData.business_hours.close || "18:00:00",
           });
-          setServicesList(firstService.services_list || []); // Set the services list
+          setServicesList(servicesData.services_list || []); // Set the services list
 
-          if (firstService.service_type === "other") {
-            setCustomService(firstService.service_type || "");
+          if (servicesData.service_type === "other") {
+            setCustomService(servicesData.service_type || "");
           }
         }
       } catch (error) {
@@ -82,6 +82,7 @@ const ServiceScreen = ({ navigation }) => {
   const [customService, setCustomService] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [servicePrice, setServicePrice] = useState("");
+  const [serviceDuration, setServiceDuration] = useState(""); // Add duration state
   const [servicesList, setServicesList] = useState<ServiceItem[]>([]);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [timeType, setTimeType] = useState("");
@@ -92,17 +93,19 @@ const ServiceScreen = ({ navigation }) => {
       return;
     }
 
-    setServicesList([
-      ...servicesList,
-      {
-        id: Date.now().toString(),
-        name: serviceName,
-        price: servicePrice,
-      },
-    ]);
+    const newService = {
+      id: Date.now().toString(),
+      name: serviceName,
+      price: servicePrice,
+      duration: serviceDuration,
+    };
+
+    // Update services list
+    setServicesList([...servicesList, newService]);
 
     setServiceName("");
     setServicePrice("");
+    setServiceDuration("30"); // Reset to default
     setErrors({ ...errors, service: "" });
   };
 
@@ -212,10 +215,12 @@ const ServiceScreen = ({ navigation }) => {
           setServiceName={setServiceName}
           servicePrice={servicePrice}
           setServicePrice={setServicePrice}
+          serviceDuration={serviceDuration} // Pass duration state
+          setServiceDuration={setServiceDuration} // Pass duration setter
           errors={errors}
           handleAddService={handleAddService}
           servicesList={servicesList}
-          onDeleteService={handleDeleteService} // Pass the delete handler
+          onDeleteService={handleDeleteService}
         />
       </View>
 

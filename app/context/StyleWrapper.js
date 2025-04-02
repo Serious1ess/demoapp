@@ -9,7 +9,8 @@ const StyleWrapper = ({ children }) => {
     <View
       style={{
         flex: 1,
-        direction: locale === "ar" ? "rtl" : "ltr",
+        writingDirection: locale === "ar" ? "rtl" : "ltr",
+        // direction: locale === "ar" ? "rtl" : "ltr",
       }}>
       {children}
     </View>

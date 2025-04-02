@@ -1,7 +1,9 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   Text,
@@ -14,7 +16,11 @@ import tw from "tailwind-react-native-classnames";
 type RootStackParamList = {
   Home: undefined;
   ServiceSelection: { customer: Customer };
-  DateTimeSelection: { customer: Customer; selectedServices: Service[] };
+  DateTimeSelection: {
+    customer: Customer;
+    selectedServices: Service[];
+    customerServices: [];
+  };
   AppointmentConfirmation: {
     customer: Customer;
     selectedServices: Service[];
@@ -39,43 +45,59 @@ interface Customer {
   id: string;
   full_name: string;
   phone: string;
+  services?: {
+    id: string;
+    service_type: string;
+    services_list: {
+      id: string;
+      name: string;
+      price: string;
+      duration: string;
+    }[];
+    business_days_open: string[];
+    business_hours: {
+      open: string;
+      close: string;
+    };
+  }[];
 }
 
 interface Service {
-  id: number;
+  id: string;
   name: string;
-  price: number;
+  price: string;
   selected?: boolean;
 }
 
 const ServiceSelectionScreen = () => {
   const navigation = useNavigation<ServiceSelectionNavigationProp>();
   const route = useRoute<ServiceSelectionRouteProp>();
-  const { customer } = route.params;
+  const { customer, customerServices } = route.params;
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const intl = useIntl();
+  const formatMessage = intl.formatMessage;
+  console.log(customerServices?.services_list);
+  // Initialize services when component mounts
+  useEffect(() => {
+    if (customerServices?.services_list) {
+      // Transform the services_list into our Service format
+      const availableServices = customerServices.services_list.map(
+        (service) => ({
+          id: service.id,
+          name: service.name,
+          price: service.price,
+          duration: service.duration,
+          selected: false, // Initialize all as unselected
+        })
+      );
 
-  // Mock services data for demonstration
-  const availableServices: Service[] = [
-    { id: 1, name: "Haircut", price: 25 },
-    { id: 2, name: "Shave", price: 15 },
-    { id: 3, name: "Hair Coloring", price: 45 },
-    { id: 4, name: "Styling", price: 30 },
-    { id: 5, name: "Beard", price: 30 },
-    { id: 6, name: "Hair Massage", price: 30 },
-  ];
-  console.log(customer.services);
-  // Get customer's selected services (assuming it's an array of service IDs)
-  const customerServiceIds =
-    customer?.services?.map((s: Service) => s.id) || [];
+      setServices(availableServices);
+    }
+    setLoading(false);
+  }, [customer]);
 
-  // Initialize services state with customer-selected services marked
-  const [services, setServices] = useState<Service[]>(
-    availableServices.map((service) => ({
-      ...service,
-      selected: customerServiceIds.includes(service.id),
-    }))
-  );
-
-  const toggleServiceSelection = (serviceId: number) => {
+  const toggleServiceSelection = (serviceId: string) => {
     setServices(
       services.map((service) =>
         service.id === serviceId
@@ -90,8 +112,17 @@ const ServiceSelectionScreen = () => {
     navigation.navigate("DateTimeSelection", {
       customer,
       selectedServices,
+      customerServices,
     });
   };
+
+  if (loading) {
+    return (
+      <View style={tw`flex-1 justify-center items-center`}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View
@@ -109,42 +140,74 @@ const ServiceSelectionScreen = () => {
           {customer?.full_name}
         </Text>
         <Text style={tw`text-base text-gray-600`}>
-          Phone: {customer?.phone}
+          {formatMessage({ id: "phone" })}: {customer?.phone}
         </Text>
+        {customer?.services?.[0]?.service_type && (
+          <Text style={tw`text-sm text-gray-500 mt-1`}>
+            {formatMessage({ id: "businesstype" })} :{" "}
+            {formatMessage({ id: customer.services[0].service_type }) ||
+              customer.services[0].service_type}
+          </Text>
+        )}
       </View>
 
       {/* Services Section */}
       <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
-        Available Services:
+        {formatMessage({ id: "availableservices" })} :
       </Text>
-      <ScrollView style={tw`max-h-96 mb-6`}>
-        {services.map((service) => (
-          <TouchableOpacity
-            key={service.id}
-            style={tw`flex-row justify-between items-center p-3 mb-2 bg-gray-50 rounded-lg ${
-              service.selected ? "bg-blue-50 border border-blue-500" : ""
-            }`}
-            onPress={() => toggleServiceSelection(service.id)}>
-            <Text style={tw`text-base text-gray-800`}>{service.name}</Text>
-            <Text
-              style={tw`text-base font-semibold text-blue-800 flex-1 text-right`}>
-              ${service.price}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+
+      {services.length === 0 ? (
+        <Text style={tw`text-center text-gray-500 py-8`}>
+          {formatMessage({ id: "noservicesavailable" })}
+        </Text>
+      ) : (
+        <ScrollView style={tw`max-h-96 mb-6`}>
+          {services.map((service) => (
+            <TouchableOpacity
+              key={service.id}
+              style={tw`flex-row justify-between items-center p-4 mb-3 bg-gray-50 rounded-lg ${
+                service.selected
+                  ? "bg-blue-50 border-2 border-blue-500"
+                  : "border border-gray-200"
+              }`}
+              onPress={() => toggleServiceSelection(service.id)}>
+              <View style={tw`flex-1`}>
+                <Text style={tw`text-base font-medium text-gray-800`}>
+                  {service.name}
+                </Text>
+              </View>
+              <View style={tw`flex-1`}>
+                <Text style={tw`text-base font-medium text-gray-800`}>
+                  {service.duration} min
+                </Text>
+              </View>
+              <Text style={tw`text-base font-semibold text-blue-800`}>
+                {service.price} TL
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       {/* Action Buttons */}
       <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
         <TouchableOpacity
           style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
-          <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
+          <Text style={tw`text-base font-semibold text-gray-800`}>
+            {" "}
+            {formatMessage({ id: "back" })}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
-          onPress={handleNext}>
-          <Text style={tw`text-base font-semibold text-white`}>Next</Text>
+          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg ${
+            services.filter((s) => s.selected).length === 0 ? "opacity-50" : ""
+          }`}
+          onPress={handleNext}
+          disabled={services.filter((s) => s.selected).length === 0}>
+          <Text style={tw`text-base font-semibold text-white`}>
+            {formatMessage({ id: "next" })}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

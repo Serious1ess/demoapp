@@ -39,5 +39,13 @@
   "logout": "تسجيل الخروج",
   "Home": "القائمة الرئيسية",
   "Profile": "الحساب",
-  "Search": " بحث ..."
+  "Search": " بحث ...",
+  "hair_salon": "صالون شعر",
+  "spa": "سبا",
+  "barbershop": "صالون حلاقة",
+  "nail_salon": "صالون أظافر",
+  "massage": "مساج",
+  "beauty_salon": "صالون تجميل",
+  "other": "أخرى",
+  "phone": "الرقم"
 }

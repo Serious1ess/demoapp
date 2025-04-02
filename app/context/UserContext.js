@@ -6,6 +6,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
 
   const fetchSession = async () => {
     try {
@@ -24,12 +25,22 @@ export const UserProvider = ({ children }) => {
           .single();
 
         if (profileError) throw profileError;
-        console.log(session);
-        setUser({
+
+        const userData = {
           ...session.user,
           ...profile,
           isBusiness: profile?.is_business || false,
-        });
+        };
+
+        setUser(userData);
+
+        // If the user is a business, subscribe to notifications
+        if (profile?.is_business) {
+          console.log("User is business, subscribing to notifications..."); // Debugging Log
+          const unsubscribe = subscribeToNotifications(userData.id);
+          console.log("user.id", userData.id);
+          return unsubscribe; // Cleanup when component unmounts
+        }
       }
     } catch (error) {
       console.error("Error fetching session:", error);
@@ -42,30 +53,64 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     fetchSession();
   }, []);
-  //   const {
-  //     data: { subscription },
-  //   } = supabase.auth.onAuthStateChange(async (event, session) => {
-  //     if (session?.user) {
-  //       const { data: profile, error } = await supabase
-  //         .from("profiles")
-  //         .select("*")
-  //         .eq("id", session.user.id)
-  //         .single();
 
-  //       if (error) console.error("Profile fetch error:", error);
+  // Function to subscribe to business notifications
+  const subscribeToNotifications = (businessId) => {
+    console.log("Subscribing to notifications for business:", businessId);
 
-  //       setUser({
-  //         ...session.user,
-  //         ...(profile || {}),
-  //         isBusiness: profile?.is_business || false,
-  //       });
-  //     } else {
-  //       setUser(null);
-  //     }
-  //   });
+    // First, fetch existing notifications
+    const fetchInitialNotifications = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false });
 
-  //   return () => subscription?.unsubscribe();
-  // }, []);
+        if (error) throw error;
+        if (data) setNotifications(data);
+      } catch (error) {
+        console.error("Error fetching initial notifications:", error);
+      }
+    };
+
+    fetchInitialNotifications();
+
+    // Then set up the realtime subscription
+    const subscription = supabase
+      .channel(`notifications:${businessId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `business_id=eq.${businessId}`,
+        },
+        (payload) => {
+          console.log("Received new notification:", payload);
+          setNotifications((prev) => [payload.new, ...prev]);
+          alert("New appointment request received!");
+        }
+      )
+      .on("system", {}, (payload) => {
+        console.log("System event:", payload);
+      })
+      .on("broadcast", { event: "test" }, (payload) => {
+        console.log("Broadcast payload:", payload);
+      })
+      .subscribe((status, err) => {
+        if (err) {
+          console.error("Subscription error:", err);
+        }
+        console.log("Subscription status:", status);
+      });
+
+    return () => {
+      console.log("Unsubscribing from notifications...");
+      supabase.removeChannel(subscription);
+    };
+  };
 
   const logout = async () => {
     try {
@@ -78,7 +123,8 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, logout }}>
+    <UserContext.Provider
+      value={{ user, setUser, loading, logout, notifications }}>
       {children}
     </UserContext.Provider>
   );

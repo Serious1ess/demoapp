@@ -39,5 +39,18 @@
   "logout": "Logout",
   "Home": "Home",
   "Profile": "Profile",
-  "Search": "Search..."
+  "Search": "Search...",
+  "hair_salon": "Hair Salon",
+  "spa": "Spa",
+  "barbershop": "Barbershop",
+  "nail_salon": "Nail Salon",
+  "massage": "Massage Therapy",
+  "beauty_salon": "Beauty Salon",
+  "other": "Other",
+  "phone": "Phone",
+  "back": "Back",
+  "next": "Next",
+  "businesstype": "Business Type",
+  "availableservices": "Available Services",
+  "noservicesavailable": "No services available for this business"
 }

@@ -1,9 +1,9 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { isBefore, isSameDay } from "date-fns";
 import React, { useState } from "react";
 import DatePickerWeb from "react-datepicker"; // For web
 import "react-datepicker/dist/react-datepicker.css"; // CSS for web date picker
-
 import {
   Platform,
   ScrollView,
@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import "../../globle.css"; // Adjust the path as needed
+
 // import DatePicker from "react-native-date-picker"; // For Android and iOS
 import DateTimePicker from "@react-native-community/datetimepicker";
 import tw from "tailwind-react-native-classnames";
@@ -19,7 +19,11 @@ import tw from "tailwind-react-native-classnames";
 type RootStackParamList = {
   Home: undefined;
   ServiceSelection: { customer: Customer };
-  DateTimeSelection: { customer: Customer; selectedServices: Service[] };
+  DateTimeSelection: {
+    customer: Customer;
+    selectedServices: Service[];
+    customerServices: [];
+  };
   AppointmentConfirmation: {
     customer: Customer;
     selectedServices: Service[];
@@ -61,8 +65,46 @@ interface TimeSlot {
 const DateTimeSelectionScreen = () => {
   const navigation = useNavigation<DateTimeSelectionNavigationProp>();
   const route = useRoute<DateTimeSelectionRouteProp>();
-  const { customer, selectedServices } = route.params;
+  const { customer, selectedServices, customerServices } = route.params;
+  const [loading, setLoading] = useState(false);
+  const bussisHours = customerServices.business_hours;
 
+  const openedDays = customerServices.business_days_open;
+  const openedDayNumbers = openedDays
+    .map((day) => {
+      switch (day.toLowerCase()) {
+        case "sunday":
+          return 0;
+        case "monday":
+          return 1;
+        case "tuesday":
+          return 2;
+        case "wednesday":
+          return 3;
+        case "thursday":
+          return 4;
+        case "friday":
+          return 5;
+        case "saturday":
+          return 6;
+        default:
+          return -1;
+      }
+    })
+    .filter((num) => num !== -1);
+  const isDateSelectable = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if date is in the future or today
+    if (isBefore(date, today) && !isSameDay(date, today)) {
+      return false;
+    }
+
+    // Check if day of week is an open day
+    const dayOfWeek = date.getDay();
+    return openedDayNumbers.includes(dayOfWeek);
+  };
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -72,16 +114,38 @@ const DateTimeSelectionScreen = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const handleDateSelect = (date: Date | null) => {
-    if (date) {
-      setSelectedDateObj(date);
-      const selectedDateString = date.toISOString().split("T")[0];
-      setSelectedDate(selectedDateString);
+    if (!date) return;
+
+    if (!isDateSelectable(date)) {
+      alert("Please select a business open day");
+      return;
     }
+
+    setSelectedDateObj(date);
+    setSelectedDate(date.toISOString().split("T")[0]);
     setShowDatePicker(false);
 
-    // Mock business hours (9 AM - 5 PM) with some busy slots
-    const workingHours = Array.from({ length: 9 }, (_, i) => i + 9); // [9,10,11,...,17]
-    const busyHours = [10, 14]; // Example: Busy at 10 AM & 2 PM
+    // Generate time slots based on business hours
+    generateTimeSlots(date);
+  };
+  const generateTimeSlots = (date: Date) => {
+    if (!customerServices?.business_hours) {
+      setAvailableHours([]);
+      return;
+    }
+
+    const { open, close } = customerServices.business_hours;
+    const [openHour] = open.split(":").map(Number);
+    const [closeHour] = close.split(":").map(Number);
+
+    const workingHours = Array.from(
+      { length: closeHour - openHour },
+      (_, i) => openHour + i
+    );
+
+    // Here you would typically fetch actual busy slots from your API
+    // For now using mock data
+    const busyHours = [10, 14]; // Example busy hours
 
     const formattedHours = workingHours.map((hour) => ({
       time: `${hour}:00`,
@@ -90,7 +154,6 @@ const DateTimeSelectionScreen = () => {
 
     setAvailableHours(formattedHours);
   };
-
   const handleNext = () => {
     if (selectedTime) {
       navigation.navigate("AppointmentConfirmation", {
@@ -112,8 +175,13 @@ const DateTimeSelectionScreen = () => {
         <div style={tw`w-full`}>
           <DatePickerWeb
             selected={selectedDateObj}
-            onChange={(date: Date | null) => handleDateSelect(date)}
-            inline // Show the calendar inline
+            onChange={handleDateSelect}
+            inline
+            minDate={new Date()}
+            filterDate={isDateSelectable}
+            highlightDates={openedDayNumbers.map((day) => ({
+              [day]: { backgroundColor: "#3b82f6", color: "white" },
+            }))}
           />
         </div>
       );
@@ -122,8 +190,7 @@ const DateTimeSelectionScreen = () => {
         <DateTimePicker
           value={selectedDateObj}
           mode="date"
-          // display={Platform.OS === "ios" ? "spinner" : }
-          display={"default"}
+          minimumDate={new Date()}
           onChange={(event, date) => {
             setShowDatePicker(false);
             if (date) handleDateSelect(date);

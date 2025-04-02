@@ -14,10 +14,10 @@ export const LocaleProvider = ({ children }) => {
     // Force RTL when Arabic is selected
     if (locale === "ar") {
       I18nManager.forceRTL(true);
-      require("../styles/globle_rtl.css"); // Load RTL styles
+      // require("../styles/globle_rtl.css"); // Load RTL styles
     } else {
       I18nManager.forceRTL(false);
-      require("../styles/globle.css"); // Load LTR styles
+      // require("../styles/globle.css"); // Load LTR styles
     }
   }, [locale]);
 
