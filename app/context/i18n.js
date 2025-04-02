@@ -14,10 +14,8 @@ export const LocaleProvider = ({ children }) => {
     // Force RTL when Arabic is selected
     if (locale === "ar") {
       I18nManager.forceRTL(true);
-      // require("../styles/globle_rtl.css"); // Load RTL styles
     } else {
       I18nManager.forceRTL(false);
-      // require("../styles/globle.css"); // Load LTR styles
     }
   }, [locale]);
 
@@ -25,9 +23,24 @@ export const LocaleProvider = ({ children }) => {
     setLocale(newLocale);
   };
 
+  // Custom error handler for missing translations
+  const handleIntlError = (error) => {
+    if (error.code === "MISSING_TRANSLATION") {
+      // Return undefined to fall back to the message ID
+      return;
+    }
+    console.error(error);
+  };
+
   return (
     <LocaleContext.Provider value={{ locale, switchLocale }}>
-      <IntlProvider locale={locale} messages={messages[locale]}>
+      <IntlProvider
+        locale={locale}
+        messages={messages[locale]}
+        onError={handleIntlError}
+        defaultLocale="en"
+        textComponent={React.Fragment} // Prevents extra wrapper spans
+      >
         {children}
       </IntlProvider>
     </LocaleContext.Provider>

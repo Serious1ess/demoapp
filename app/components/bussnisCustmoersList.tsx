@@ -102,7 +102,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
                           key={`${item.id}-${service.id}`}
                           style={tw`bg-blue-100 rounded-full px-2 py-1 mr-1 mb-1`}>
                           <Text style={tw`text-xs text-blue-800`}>
-                            {formatMessage({ id: service.service_type }) ||
+                            {formatMessage({ id: service?.service_type }) ||
                               service.service_type}
                           </Text>
                         </View>

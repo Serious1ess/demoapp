@@ -174,3 +174,13 @@ export const getBusinessAppointments = async () => {
   if (error) throw error;
   return data;
 };
+
+export const getAppointmentServices = async (appointmentId) => {
+  const { data, error } = await supabase
+    .from("appointment_services")
+    .select("service_id, service_name")
+    .eq("appointment_id", appointmentId);
+
+  if (error) throw error;
+  return data;
+};

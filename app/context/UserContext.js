@@ -58,7 +58,7 @@ export const UserProvider = ({ children }) => {
   const subscribeToNotifications = (businessId) => {
     console.log("Subscribing to notifications for business:", businessId);
 
-    // First, fetch existing notifications
+    // 1. Fetch initial notifications
     const fetchInitialNotifications = async () => {
       try {
         const { data, error } = await supabase
@@ -76,39 +76,40 @@ export const UserProvider = ({ children }) => {
 
     fetchInitialNotifications();
 
-    // Then set up the realtime subscription
+    // 2. Set up realtime subscription
     const subscription = supabase
-      .channel(`notifications:${businessId}`)
+      .channel(`business_notifications:${businessId}`) // Simplified channel name
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Listen for all events (INSERT, UPDATE, DELETE)
           schema: "public",
           table: "notifications",
           filter: `business_id=eq.${businessId}`,
         },
         (payload) => {
-          console.log("Received new notification:", payload);
-          setNotifications((prev) => [payload.new, ...prev]);
-          alert("New appointment request received!");
+          console.log("Change received:", payload);
+          if (payload.eventType === "INSERT") {
+            setNotifications((prev) => [payload.new, ...prev]);
+            alert("New appointment request received!");
+          }
         }
       )
-      .on("system", {}, (payload) => {
-        console.log("System event:", payload);
-      })
-      .on("broadcast", { event: "test" }, (payload) => {
-        console.log("Broadcast payload:", payload);
-      })
       .subscribe((status, err) => {
         if (err) {
           console.error("Subscription error:", err);
+          // Add retry logic here if needed
         }
         console.log("Subscription status:", status);
       });
 
+    // 3. Proper cleanup
     return () => {
       console.log("Unsubscribing from notifications...");
-      supabase.removeChannel(subscription);
+      supabase
+        .removeChannel(subscription)
+        .then(() => console.log("Unsubscribed successfully"))
+        .catch((err) => console.error("Error unsubscribing:", err));
     };
   };
 
@@ -117,6 +118,7 @@ export const UserProvider = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
+      setNotifications([]);
     } catch (error) {
       console.error("Error logging out:", error.message);
     }
