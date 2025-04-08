@@ -199,7 +199,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
         <Text style={tw`text-lg text-gray-800 mb-4`}>
           {intl.formatMessage({ id: "verifyEmailPrompt" })}
         </Text>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator size="large" color="#4b8494" />
       </View>
     );
   }
@@ -422,7 +422,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
             <Switch
               value={isBusiness}
               onValueChange={setIsBusiness}
-              trackColor={{ false: "#ccc", true: "#007bff" }}
+              trackColor={{ false: "#ccc", true: "#4b8494" }}
               thumbColor={isBusiness ? "#fff" : "#f4f3f4"}
             />
           </View>

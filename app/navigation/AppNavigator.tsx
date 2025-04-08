@@ -62,13 +62,15 @@ const AuthStackNavigator = () => {
 const ProfileStack = createStackNavigator();
 
 const ProfileStackNavigator = () => {
+  const { user, notifications } = useUser();
+  const navigation = useNavigation(); // Add this hook
   return (
     <ProfileStack.Navigator
       screenOptions={({ navigation: nav }) => ({
         // Rename to avoid conflict
         headerShown: true,
         headerTitleAlign: "center",
-        headerStyle: { backgroundColor: "#007BFF" },
+        headerStyle: { backgroundColor: "#4b8494" },
         headerTintColor: "#fff",
         headerLeft: () => (
           <TouchableOpacity
@@ -79,10 +81,29 @@ const ProfileStackNavigator = () => {
         ),
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => nav.navigate("notification")} // Fixed navigation
+            onPress={() => navigation.navigate("notification")} // Fixed navigation
             style={{ marginRight: 15 }}>
-            <Ionicons name="notifications-outline" size={24} color="#fff" />
-            {/* Add badge if needed */}
+            <View style={{ position: "relative" }}>
+              <Ionicons name="notifications-outline" size={24} color="#fff" />
+              {notifications.length > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -5,
+                    top: -5,
+                    backgroundColor: "red",
+                    borderRadius: 10,
+                    width: 18,
+                    height: 18,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}>
+                  <Text style={{ color: "white", fontSize: 10 }}>
+                    {notifications.length}
+                  </Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         ),
       })}>
@@ -108,9 +129,9 @@ const HomeTabs = () => {
     <Tab.Navigator
       screenOptions={{
         headerTitleAlign: "center",
-        headerStyle: { backgroundColor: "#007BFF" },
+        headerStyle: { backgroundColor: "#4b8494" },
         headerTintColor: "#fff",
-        tabBarActiveTintColor: "#007BFF",
+        tabBarActiveTintColor: "#4b8494",
         tabBarInactiveTintColor: "#666",
         headerRight: () => (
           <TouchableOpacity
@@ -198,7 +219,7 @@ const AppNavigator = () => {
           headerShown: true, // Explicitly show header for this screen
           title: "Notifications",
           headerTitleAlign: "center",
-          headerStyle: { backgroundColor: "#007BFF" },
+          headerStyle: { backgroundColor: "#4b8494" },
           headerTintColor: "#fff",
           headerLeft: ({ onPress }) => (
             <TouchableOpacity

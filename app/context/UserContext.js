@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../supabase/supabase"; // Import your Supabase client
+import { supabase } from "../supabase/supabase";
 
 const UserContext = createContext();
 
@@ -34,13 +34,17 @@ export const UserProvider = ({ children }) => {
 
         setUser(userData);
 
-        // If the user is a business, subscribe to notifications
-        if (profile?.is_business) {
-          console.log("User is business, subscribing to notifications..."); // Debugging Log
-          const unsubscribe = subscribeToNotifications(userData.id);
-          console.log("user.id", userData.id);
-          return unsubscribe; // Cleanup when component unmounts
-        }
+        // Subscribe to notifications based on user type
+        console.log(
+          "User is",
+          userData.isBusiness ? "business" : "customer",
+          "subscribing to notifications..."
+        );
+        const unsubscribe = subscribeToNotifications(
+          userData.id,
+          userData.isBusiness
+        );
+        return unsubscribe; // Cleanup when component unmounts
       }
     } catch (error) {
       console.error("Error fetching session:", error);
@@ -54,18 +58,40 @@ export const UserProvider = ({ children }) => {
     fetchSession();
   }, []);
 
-  // Function to subscribe to business notifications
-  const subscribeToNotifications = (businessId) => {
-    console.log("Subscribing to notifications for business:", businessId);
+  // Function to subscribe to notifications
+  const subscribeToNotifications = (userId, isBusiness) => {
+    console.log(
+      `Subscribing to notifications for ${
+        isBusiness ? "business" : "customer"
+      }:`,
+      userId
+    );
 
     // 1. Fetch initial notifications
     const fetchInitialNotifications = async () => {
       try {
-        const { data, error } = await supabase
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayISO = today.toISOString();
+
+        let query = supabase
           .from("notifications")
           .select("*")
-          .eq("business_id", businessId)
           .order("created_at", { ascending: false });
+
+        if (isBusiness) {
+          query = query
+            .eq("business_id", userId)
+            .or(
+              `and(created_at.gte.${todayISO},created_at.lt.${new Date(
+                today.getTime() + 86400000
+              ).toISOString()}),and(status.eq.pending,created_at.gt.${todayISO})`
+            );
+        } else {
+          query = query.eq("customer_id", userId).gte("created_at", todayISO);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         if (data) setNotifications(data);
@@ -77,28 +103,34 @@ export const UserProvider = ({ children }) => {
     fetchInitialNotifications();
 
     // 2. Set up realtime subscription
+    const filterField = isBusiness ? "business_id" : "customer_id";
+    const channelName = isBusiness
+      ? `business_notifications:${userId}`
+      : `customer_notifications:${userId}`;
+
     const subscription = supabase
-      .channel(`business_notifications:${businessId}`) // Simplified channel name
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen for all events (INSERT, UPDATE, DELETE)
+          event: "*",
           schema: "public",
           table: "notifications",
-          filter: `business_id=eq.${businessId}`,
+          filter: `${filterField}=eq.${userId}`,
         },
         (payload) => {
           console.log("Change received:", payload);
           if (payload.eventType === "INSERT") {
             setNotifications((prev) => [payload.new, ...prev]);
-            alert("New appointment request received!");
+            if (isBusiness) {
+              alert("New appointment request received!");
+            }
           }
         }
       )
       .subscribe((status, err) => {
         if (err) {
           console.error("Subscription error:", err);
-          // Add retry logic here if needed
         }
         console.log("Subscription status:", status);
       });
@@ -126,7 +158,14 @@ export const UserProvider = ({ children }) => {
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, loading, logout, notifications }}>
+      value={{
+        user,
+        setUser,
+        loading,
+        logout,
+        notifications,
+        setNotifications,
+      }}>
       {children}
     </UserContext.Provider>
   );

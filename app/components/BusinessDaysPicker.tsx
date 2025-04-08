@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import tw from "tailwind-react-native-classnames";
 
 interface BusinessDaysPickerProps {

@@ -33,7 +33,7 @@ const LoginScreen = ({ navigation }) => {
         <Ionicons
           name="arrow-back"
           size={24}
-          color="#007BFF"
+          color="#4b8494"
           style={{ transform: [{ scaleX: intl.locale === "ar" ? -1 : 1 }] }}
         />
       </TouchableOpacity>

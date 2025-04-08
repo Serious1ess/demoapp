@@ -140,6 +140,7 @@ const ProfileScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={tw`bg-blue-600 py-3 rounded-lg items-center mb-4`}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate("EditProfile")}>
           <Text style={tw`text-white font-bold text-lg`}>
             {intl.formatMessage({ id: "editProfile" })}
@@ -148,7 +149,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {user?.isBusiness && (
           <TouchableOpacity
-            style={tw`bg-gray-600 py-3 rounded-lg items-center mb-4`}
+            style={tw`bg-primary-600 py-3 rounded-lg items-center mb-4`}
             onPress={() => navigation.navigate("ServiceScreen")}>
             <Text style={tw`text-white font-bold text-lg`}>
               {intl.formatMessage({ id: "manageServices" })}
