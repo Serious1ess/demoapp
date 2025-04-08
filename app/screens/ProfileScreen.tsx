@@ -3,9 +3,9 @@ import { useIntl } from "react-intl";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import tw from "tailwind-react-native-classnames";
 import LanguageSelector from "../components/LanguageSelector";
 import { useUser } from "../context/UserContext";
+import tw from "../utils/tw"; // Use our custom tw
 
 const ProfileScreen = ({ navigation }) => {
   const { user, loading, logout } = useUser();
@@ -28,7 +28,7 @@ const ProfileScreen = ({ navigation }) => {
           {intl.formatMessage({ id: "noUserLoggedIn" })}
         </Text>
         <TouchableOpacity
-          style={tw`bg-blue-600 py-3 px-6 rounded-lg`}
+          style={tw`bg-primary py-3 px-6 rounded-lg`}
           onPress={() => navigation.navigate("Login")}>
           <Text style={tw`text-white font-bold`}>
             {intl.formatMessage({ id: "goToLogin" })}
@@ -47,14 +47,14 @@ const ProfileScreen = ({ navigation }) => {
         {user?.profile_picture ? (
           <Image
             source={{ uri: user.profile_picture }}
-            style={tw`w-32 h-32 rounded-full mb-4 border-4 border-blue-500`}
+            style={tw`w-32 h-32 rounded-full mb-4 border-4 border-primary`}
           />
         ) : (
           <View style={tw`mb-4`}>
             <Ionicons
               name="person-circle-outline"
               size={120}
-              style={tw`text-blue-500`}
+              style={tw`text-primary`}
             />
           </View>
         )}
@@ -73,7 +73,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="call-outline"
             size={20}
-            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
+            style={tw`text-primary ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
           <Text style={tw`text-gray-700`}>
             {user?.phone || intl.formatMessage({ id: "notProvided" })}
@@ -84,7 +84,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="calendar-outline"
             size={20}
-            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
+            style={tw`text-primary ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
           <Text style={tw`text-gray-700`}>
             {user?.birth_year
@@ -97,7 +97,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons
             name="location-outline"
             size={20}
-            style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
+            style={tw`text-primary ${locale === "ar" ? "ml-2" : "mr-2"}`}
           />
           <Text style={tw`text-gray-700`}>
             {user?.country || intl.formatMessage({ id: "defaultCountry" })}
@@ -109,7 +109,7 @@ const ProfileScreen = ({ navigation }) => {
             <Ionicons
               name="id-card-outline"
               size={20}
-              style={tw`text-blue-500 ${locale === "ar" ? "ml-2" : "mr-2"}`}
+              style={tw`text-primary ${locale === "ar" ? "ml-2" : "mr-2"}`}
             />
             <Text style={tw`text-gray-700`}>
               {intl.formatMessage({ id: "idNumber" })}: ••••••
@@ -122,7 +122,7 @@ const ProfileScreen = ({ navigation }) => {
       {/* Business Badge */}
       {user?.isBusiness && (
         <View
-          style={tw`flex-row items-center justify-center bg-blue-600 py-2 px-4 rounded-full mb-6 self-center`}>
+          style={tw`flex-row items-center justify-center bg-primary py-2 px-4 rounded-full mb-6 self-center`}>
           <Ionicons
             name="business-outline"
             size={18}
@@ -139,7 +139,7 @@ const ProfileScreen = ({ navigation }) => {
         <LanguageSelector />
 
         <TouchableOpacity
-          style={tw`bg-blue-600 py-3 rounded-lg items-center mb-4`}
+          style={tw`bg-primary py-3 rounded-lg items-center mb-4`}
           activeOpacity={0.8}
           onPress={() => navigation.navigate("EditProfile")}>
           <Text style={tw`text-white font-bold text-lg`}>
@@ -149,7 +149,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {user?.isBusiness && (
           <TouchableOpacity
-            style={tw`bg-primary-600 py-3 rounded-lg items-center mb-4`}
+            style={tw`bg-gray-600 py-3 rounded-lg items-center mb-4`}
             onPress={() => navigation.navigate("ServiceScreen")}>
             <Text style={tw`text-white font-bold text-lg`}>
               {intl.formatMessage({ id: "manageServices" })}
