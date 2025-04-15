@@ -141,7 +141,7 @@ const ProfileScreen = ({ navigation }) => {
         <TouchableOpacity
           style={tw`bg-primary py-3 rounded-lg items-center mb-4`}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("EditProfile")}>
+          onPress={() => navigation.navigate("EditProfileScreen")}>
           <Text style={tw`text-white font-bold text-lg`}>
             {intl.formatMessage({ id: "editProfile" })}
           </Text>

@@ -18,6 +18,7 @@ import AppointmentConfirmationScreen from "../screens/customerScreen/Appointment
 import DateTimeSelectionScreen from "../screens/customerScreen/DateTimeSelectionScreen";
 import HomeScreen from "../screens/customerScreen/HomeScreen";
 import ServiceSelectionScreen from "../screens/customerScreen/ServiceSelectionScreen";
+import EditProfileScreen from "../screens/editProfileScreen";
 import NotificationsScreen from "../screens/notification";
 import ProfileScreen from "../screens/ProfileScreen";
 const Stack = createStackNavigator();
@@ -116,6 +117,11 @@ const ProfileStackNavigator = () => {
         name="ServiceScreen"
         component={ServiceScreen}
         options={{ title: "Services" }}
+      />
+      <ProfileStack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+        options={{ title: "Edit Profile" }}
       />
     </ProfileStack.Navigator>
   );
@@ -231,6 +237,7 @@ const AppNavigator = () => {
         }}
       />
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
+      <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
       <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Signup" component={SignupScreen} />

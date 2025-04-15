@@ -13,6 +13,73 @@ const showAlert = (title: string, message: string) => {
   }
 };
 
+export const handleUpdateProfile = async (
+  userData: {
+    first_name: string,
+    last_name: string,
+    email: string,
+    phone: string,
+    birth_year: number,
+  },
+  userId: string,
+  setUser: Function
+) => {
+  try {
+    // Validate required fields
+    if (!userData.first_name || !userData.last_name) {
+      showAlert("Error", "First name, last name are required");
+      return { success: false };
+    }
+
+    // Step 1: Upload profile picture if a new one is provided
+
+    // Step 2: Update the profile in the database
+    const profileData = {
+      ...userData,
+      profile_picture: profilePictureUrl,
+      full_name: `${userData.first_name} ${userData.last_name}`,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(profileData)
+      .eq("id", userId);
+
+    if (error) {
+      throw error;
+    }
+
+    // Step 4: Fetch the updated user profile to ensure we have the latest data
+    const { data: freshProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    // Step 5: Update the user context with the fresh data
+    setUser({
+      ...authUser?.user,
+      ...freshProfile,
+      isBusiness: freshProfile?.is_business || false,
+    });
+
+    showAlert("Success", "Profile updated successfully");
+    return { success: true };
+  } catch (error) {
+    console.error("Profile update error:", error);
+    showAlert(
+      "Update Error",
+      error.message || "Failed to update profile. Please try again."
+    );
+    return { success: false, error };
+  }
+};
+
 export const handleLogin = async (
   email: string,
   password: string,
@@ -163,21 +230,93 @@ export const handleSignup = async (
       throw new Error("User creation failed. Please try again.");
     }
 
-    // Step 2: Upload profile picture if provided
+    // Step 2: Upload profile picture if provided with retry logic
     let profilePictureUrl = null;
     if (profilePicture) {
-      try {
-        profilePictureUrl = await uploadProfileImage(
-          authData.user.id,
-          profilePicture
-        );
-      } catch (error) {
-        console.error("Image upload error:", error);
+      // Add retry logic for image upload
+      let uploadError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          console.log(
+            `Attempting to upload profile picture: attempt ${attempt + 1}`
+          );
+
+          // Add a longer timeout for image uploads (30 seconds)
+          const uploadPromise = uploadProfileImage(
+            authData.user.id,
+            profilePicture
+          );
+
+          const imageTimeoutPromise = new Promise((_, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  new Error(
+                    "Image upload timed out. Please try again with a smaller image."
+                  )
+                ),
+              30000
+            )
+          );
+
+          profilePictureUrl = await Promise.race([
+            uploadPromise,
+            imageTimeoutPromise,
+          ]);
+
+          // Verify the URL is valid before proceeding
+          if (profilePictureUrl && typeof profilePictureUrl === "string") {
+            // Ensure the URL is valid
+            if (profilePictureUrl.startsWith("http")) {
+              // Verify the image exists by trying to fetch it (for web)
+              if (Platform.OS === "web") {
+                try {
+                  const checkImage = await fetch(profilePictureUrl, {
+                    method: "HEAD",
+                  });
+                  if (!checkImage.ok) {
+                    throw new Error(
+                      `Image URL returned status ${checkImage.status}`
+                    );
+                  }
+                } catch (fetchError) {
+                  console.error("Image verification failed:", fetchError);
+                  throw new Error("Uploaded image could not be verified");
+                }
+              }
+
+              uploadError = null;
+              console.log(
+                `Profile picture uploaded successfully: ${profilePictureUrl}`
+              );
+              break;
+            } else {
+              throw new Error("Invalid profile picture URL returned");
+            }
+          } else {
+            throw new Error("Profile picture upload failed");
+          }
+        } catch (error) {
+          uploadError = error;
+          console.error(`Image upload attempt ${attempt + 1} failed:`, error);
+
+          // Wait before retry with exponential backoff
+          if (attempt < 2) {
+            const backoffTime = 1000 * Math.pow(2, attempt);
+            console.log(`Waiting ${backoffTime}ms before next attempt`);
+            await new Promise((resolve) => setTimeout(resolve, backoffTime));
+          }
+        }
+      }
+
+      if (uploadError) {
+        console.error("All image upload attempts failed:", uploadError);
         showAlert(
-          "Upload Error",
-          error.message ||
-            "Failed to upload profile picture. You can add one later."
+          "Upload Warning",
+          "Failed to upload profile picture after multiple attempts. Your account will be created without a profile picture."
         );
+        // Continue with null profile picture
+        profilePictureUrl = null;
       }
     }
 
@@ -185,32 +324,45 @@ export const handleSignup = async (
     let profileError = null;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const { error } = await supabase.from("profiles").insert({
-          id: authData.user.id,
-          full_name: `${name} ${surname}`,
-          first_name: name,
-          last_name: surname,
-          phone,
-          id_number: idNumber,
-          profile_picture: profilePictureUrl,
-          birth_year: parseInt(birthYear),
-          country: "Turkey",
-          is_business: isBusiness,
-        });
+        console.log(
+          `Attempting to create user profile: attempt ${attempt + 1}`
+        );
+
+        const { error, data } = await supabase
+          .from("profiles")
+          .insert({
+            id: authData.user.id,
+            full_name: `${name} ${surname}`,
+            first_name: name,
+            last_name: surname,
+            phone,
+            id_number: idNumber,
+            profile_picture: profilePictureUrl,
+            birth_year: parseInt(birthYear),
+            country: "Turkey",
+            is_business: isBusiness,
+          })
+          .select();
 
         if (!error) {
+          console.log("Profile created successfully:", data);
           profileError = null;
           break;
         }
+
         profileError = error;
+        console.error(`Profile creation attempt ${attempt + 1} failed:`, error);
       } catch (error) {
         profileError = error;
+        console.error(`Profile creation attempt ${attempt + 1} error:`, error);
       }
 
       if (attempt < 2) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 1000 * (attempt + 1))
+        const backoffTime = 1000 * Math.pow(2, attempt);
+        console.log(
+          `Waiting ${backoffTime}ms before next profile creation attempt`
         );
+        await new Promise((resolve) => setTimeout(resolve, backoffTime));
       }
     }
 
