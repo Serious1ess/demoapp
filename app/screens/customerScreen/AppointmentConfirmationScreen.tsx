@@ -120,10 +120,6 @@ const AppointmentConfirmationScreen = () => {
       contentContainerStyle={tw`flex-grow bg-white p-4 ${
         Platform.OS === "ios" ? "pt-12" : "pt-4"
       }`}>
-      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
-        Confirm Appointment
-      </Text>
-
       {/* Business Info */}
       <View
         style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
@@ -187,11 +183,11 @@ const AppointmentConfirmationScreen = () => {
 
       {/* Action Buttons */}
       <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
           <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={tw`flex-1 bg-green-500 rounded-lg py-3 mx-2 items-center shadow-lg ${

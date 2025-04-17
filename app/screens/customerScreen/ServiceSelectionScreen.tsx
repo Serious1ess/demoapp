@@ -129,10 +129,6 @@ const ServiceSelectionScreen = () => {
       style={tw`flex-1 bg-white p-4 ${
         Platform.OS === "ios" ? "pt-12" : "pt-4"
       }`}>
-      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
-        Select Services
-      </Text>
-
       {/* Customer Info */}
       <View
         style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
@@ -191,14 +187,6 @@ const ServiceSelectionScreen = () => {
 
       {/* Action Buttons */}
       <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
-        <TouchableOpacity
-          style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
-          onPress={() => navigation.goBack()}>
-          <Text style={tw`text-base font-semibold text-gray-800`}>
-            {" "}
-            {formatMessage({ id: "back" })}
-          </Text>
-        </TouchableOpacity>
         <TouchableOpacity
           style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg ${
             services.filter((s) => s.selected).length === 0 ? "opacity-50" : ""

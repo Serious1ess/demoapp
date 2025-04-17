@@ -78,7 +78,7 @@ const HomeScreen = () => {
     }
   };
   return (
-    <View style={tw`flex-1 p-4`}>
+    <View style={tw`flex-1`}>
       <CustomerList
         customers={businessCustomers}
         loading={loading}

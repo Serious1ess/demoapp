@@ -15,6 +15,7 @@ import {
 // import DatePicker from "react-native-date-picker"; // For Android and iOS
 import DateTimePicker from "@react-native-community/datetimepicker";
 import tw from "tailwind-react-native-classnames";
+import { supabase } from "../../supabase/supabase";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
@@ -128,32 +129,41 @@ const DateTimeSelectionScreen = () => {
     // Generate time slots based on business hours
     generateTimeSlots(date);
   };
-  const generateTimeSlots = (date: Date) => {
+
+  const generateTimeSlots = async (date: Date) => {
     if (!customerServices?.business_hours) {
       setAvailableHours([]);
       return;
     }
 
-    const { open, close } = customerServices.business_hours;
-    const [openHour] = open.split(":").map(Number);
-    const [closeHour] = close.split(":").map(Number);
+    try {
+      const { data: timeSlots, error } = await supabase.rpc(
+        "get_accurate_time_slots",
+        {
+          business_id_param: customer.id,
+          selected_date_param: date.toISOString().split("T")[0],
+          business_open_time_param: customerServices.business_hours.open,
+          business_close_time_param: customerServices.business_hours.close,
+          time_slot_interval_param: 30, // or whatever interval you prefer
+        }
+      );
 
-    const workingHours = Array.from(
-      { length: closeHour - openHour },
-      (_, i) => openHour + i
-    );
+      if (error) throw error;
 
-    // Here you would typically fetch actual busy slots from your API
-    // For now using mock data
-    const busyHours = [10, 14]; // Example busy hours
+      const formattedSlots = timeSlots.map((slot) => ({
+        time: slot.time_slot.split(":").slice(0, 2).join(":"),
+        isBusy: !slot.is_available,
+        status: slot.status,
+      }));
 
-    const formattedHours = workingHours.map((hour) => ({
-      time: `${hour}:00`,
-      isBusy: busyHours.includes(hour),
-    }));
-
-    setAvailableHours(formattedHours);
+      setAvailableHours(formattedSlots);
+    } catch (error) {
+      console.error("Error fetching time slots:", error);
+      setAvailableHours([]);
+      alert("Failed to load available time slots. Please try again.");
+    }
   };
+
   const handleNext = () => {
     if (selectedTime) {
       navigation.navigate("AppointmentConfirmation", {
@@ -205,10 +215,6 @@ const DateTimeSelectionScreen = () => {
       contentContainerStyle={tw`flex-grow bg-white p-4 ${
         Platform.OS === "ios" ? "pt-12" : "pt-4"
       }`}>
-      <Text style={tw`text-2xl font-bold text-center text-gray-800 mb-4`}>
-        Schedule Appointment
-      </Text>
-
       {/* Customer Info */}
       <View
         style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
@@ -306,11 +312,11 @@ const DateTimeSelectionScreen = () => {
 
       {/* Action Buttons */}
       <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={tw`flex-1 bg-gray-100 border border-gray-300 rounded-lg py-3 mx-2 items-center`}
           onPress={() => navigation.goBack()}>
           <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
           onPress={handleNext}

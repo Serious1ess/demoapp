@@ -26,22 +26,38 @@ const Tab = createBottomTabNavigator();
 
 // Stack navigator for customer appointment booking flow
 const CustomerStack = createStackNavigator();
-
 const CustomerBookingNavigator = () => {
   return (
-    <CustomerStack.Navigator screenOptions={{ headerShown: false }}>
-      <CustomerStack.Screen name="CustomerHome" component={HomeScreen} />
+    <CustomerStack.Navigator
+      screenOptions={{
+        headerShown: true,
+        // Optional: You can set some default header styles here
+        headerStyle: {
+          backgroundColor: "#f5f5f5", // example background color
+        },
+        headerTitleStyle: {
+          fontWeight: "bold", // example title style
+        },
+      }}>
+      <CustomerStack.Screen
+        name="CustomerHome"
+        component={HomeScreen}
+        options={{ title: "Home" }}
+      />
       <CustomerStack.Screen
         name="ServiceSelection"
         component={ServiceSelectionScreen}
+        options={{ title: "Select Service" }}
       />
       <CustomerStack.Screen
         name="DateTimeSelection"
         component={DateTimeSelectionScreen}
+        options={{ title: "Select Date & Time" }}
       />
       <CustomerStack.Screen
         name="AppointmentConfirmation"
         component={AppointmentConfirmationScreen}
+        options={{ title: "Confirmation" }}
       />
     </CustomerStack.Navigator>
   );
@@ -52,7 +68,7 @@ const AuthStack = createStackNavigator();
 
 const AuthStackNavigator = () => {
   return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+    <AuthStack.Navigator screenOptions={{ headerShown: true }}>
       <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Signup" component={SignupScreen} />
