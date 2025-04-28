@@ -3,12 +3,12 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { View } from "react-native";
-import tw from "tailwind-react-native-classnames";
 import CustomerList from "../../components/bussnisCustmoersList";
 import {
   fetchBusinessCustomers,
   fetchUserServices,
 } from "../../supabase/customer";
+import tw from "../../utils/tw";
 // Define the type for our navigation
 type RootStackParamList = {
   Home: undefined;

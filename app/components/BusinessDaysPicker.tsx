@@ -1,7 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import tw from "tailwind-react-native-classnames";
-
+import tw from "../utils/tw";
 interface BusinessDaysPickerProps {
   selectedDays: string[];
   onDayToggle: (day: string) => void;
@@ -35,7 +34,7 @@ const BusinessDaysPicker: React.FC<BusinessDaysPickerProps> = ({
             key={day.value}
             style={tw`p-3 border border-gray-300 rounded-full mb-2 ${
               selectedDays.includes(day.value)
-                ? "bg-blue-500 border-blue-500"
+                ? "bg-primary-500 border-primary-500"
                 : ""
             }`}
             onPress={() => onDayToggle(day.value)}>

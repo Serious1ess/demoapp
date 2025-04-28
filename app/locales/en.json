@@ -52,5 +52,7 @@
   "next": "Next",
   "businesstype": "Business Type",
   "availableservices": "Available Services",
-  "noservicesavailable": "No services available for this business"
+  "noservicesavailable": "No services available for this business",
+  "SelectService": "Select Services",
+  "Notifications": "Notifications"
 }

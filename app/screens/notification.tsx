@@ -10,11 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import tw from "tailwind-react-native-classnames";
 import { useUser } from "../context/UserContext";
 import { getAppointmentServices } from "../supabase/busuniss";
 import { supabase } from "../supabase/supabase";
-
+import tw from "../utils/tw";
 const NotificationsScreen = () => {
   const { user, notifications, setNotifications } = useUser();
   // const fullname = user?.user_metadata?.full_name || "User";

@@ -72,7 +72,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
       ? {
           ...tw`py-4 px-5`,
           maxHeight: "calc(100vh - 150px)",
-          overflowY: "auto",
+          // overflowY: "auto",
         }
       : tw`py-4 px-5`;
 
@@ -345,10 +345,8 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     <View style={tw`flex-1 bg-white`}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* Fixed Header */}
-      <View style={tw`pt-8 px-5 bg-white shadow-sm`}>
+      {/* <View style={tw`pt-8 px-5 bg-white shadow-sm`}>
         <View style={tw`max-w-md w-full mx-auto`}>
-          {/* Header */}
           <View style={tw`mb-4 items-center`}>
             <Text
               style={[tw`text-3xl mb-2 text-primary`, { fontWeight: "bold" }]}>
@@ -359,7 +357,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
             </Text>
           </View>
         </View>
-      </View>
+      </View> */}
 
       {/* Scrollable Form Area */}
       <KeyboardAvoidingView
@@ -378,7 +376,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
             <View style={tw`items-center mb-6`}>
               <TouchableOpacity
                 style={[
-                  tw`h-24 w-24 rounded-full justify-center items-center overflow-hidden`,
+                  tw`h-full w-24 rounded-full justify-center items-center overflow-hidden`,
                   {
                     backgroundColor: "#f1f3f5",
                     borderWidth: 2,

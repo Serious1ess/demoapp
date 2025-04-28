@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import tw from "tailwind-react-native-classnames";
 import BusinessDaysPicker from "../../components/BusinessDaysPicker";
 import CustomPicker from "../../components/CustomPicker";
 import ServiceForm from "../../components/servciceListForm"; // Fixed path
@@ -19,7 +18,7 @@ import {
   fetchUserServices,
   saveUserServiceData,
 } from "../../supabase/busuniss";
-
+import tw from "../../utils/tw";
 interface ServiceItem {
   id: string;
   name: string;
@@ -324,7 +323,7 @@ const ServiceScreen = ({ navigation }) => {
       {/* Save Button */}
       <View style={tw`p-4`}>
         <TouchableOpacity
-          style={tw`w-full p-4 bg-blue-500 rounded-lg mt-6`}
+          style={tw`w-full p-4 bg-primary-500 rounded-lg mt-6`}
           onPress={onSaveService}>
           <Text style={tw`text-white text-center text-lg font-bold`}>Save</Text>
         </TouchableOpacity>

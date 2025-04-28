@@ -14,8 +14,8 @@ import {
 
 // import DatePicker from "react-native-date-picker"; // For Android and iOS
 import DateTimePicker from "@react-native-community/datetimepicker";
-import tw from "tailwind-react-native-classnames";
 import { supabase } from "../../supabase/supabase";
+import tw from "../../utils/tw";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
@@ -217,7 +217,7 @@ const DateTimeSelectionScreen = () => {
       }`}>
       {/* Customer Info */}
       <View
-        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        style={tw`bg-primary-50 p-4 rounded-lg mb-6 border-l-4 border-primary-500 shadow-sm`}>
         <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
           {customer?.full_name}
         </Text>
@@ -237,7 +237,7 @@ const DateTimeSelectionScreen = () => {
               key={service.id}
               style={tw`flex-row justify-between items-center py-2 border-b border-gray-200`}>
               <Text style={tw`text-base text-gray-800`}>{service.name}</Text>
-              <Text style={tw`text-base font-semibold text-blue-800`}>
+              <Text style={tw`text-base font-semibold text-primary-800`}>
                 ${service.price}
               </Text>
             </View>
@@ -252,18 +252,18 @@ const DateTimeSelectionScreen = () => {
       <View style={tw`mb-6`}>
         <TouchableOpacity
           style={[
-            tw`bg-blue-50 p-3 rounded-lg border border-blue-500 items-center`,
+            tw`bg-primary-50 p-3 rounded-lg border border-primary-500 items-center`,
             Platform.OS === "web" ? { display: "none" } : {},
           ]}
           onPress={() => setShowDatePicker(true)}>
-          <Text style={tw`text-base font-semibold text-blue-800`}>
+          <Text style={tw`text-base font-semibold text-primary-800`}>
             Open Calendar
           </Text>
         </TouchableOpacity>
 
         {selectedDate && (
           <Text
-            style={tw`text-base font-bold text-blue-800 mt-4 bg-blue-100 p-3 rounded-lg text-center`}>
+            style={tw`text-base font-bold text-primary-800 mt-4 bg-primary-100 p-3 rounded-lg text-center`}>
             Date: {selectedDate}
           </Text>
         )}
@@ -287,7 +287,8 @@ const DateTimeSelectionScreen = () => {
                   item.isBusy
                     ? tw`bg-red-100 border-red-300`
                     : tw`bg-green-100 border-green-300`,
-                  selectedTime === item.time && tw`bg-blue-100 border-blue-500`,
+                  selectedTime === item.time &&
+                    tw`bg-primary-100 border-primary-500`,
                 ]}
                 disabled={item.isBusy}
                 onPress={() => setSelectedTime(item.time)}>
@@ -303,7 +304,7 @@ const DateTimeSelectionScreen = () => {
           </View>
           {selectedTime && (
             <Text
-              style={tw`text-base font-bold text-blue-800 mt-4 bg-blue-100 p-3 rounded-lg text-center`}>
+              style={tw`text-base font-bold text-primary-800 mt-4 bg-primary-100 p-3 rounded-lg text-center`}>
               Selected Time: {selectedTime}
             </Text>
           )}
@@ -318,7 +319,7 @@ const DateTimeSelectionScreen = () => {
           <Text style={tw`text-base font-semibold text-gray-800`}>Back</Text>
         </TouchableOpacity> */}
         <TouchableOpacity
-          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
+          style={tw`flex-1 bg-primary-500 rounded-lg py-3 mx-2 items-center shadow-lg`}
           onPress={handleNext}
           disabled={!selectedTime}>
           <Text style={tw`text-base font-semibold text-white`}>Next</Text>

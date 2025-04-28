@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
 import { useIntl } from "react-intl";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
-import tw from "tailwind-react-native-classnames";
 import { LocaleContext } from "../context/i18n";
+import tw from "../utils/tw";
 const LanguageSelector = () => {
   const intl = useIntl();
   const { locale, switchLocale } = useContext(LocaleContext);

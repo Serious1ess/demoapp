@@ -1,8 +1,7 @@
 // screens/VerifyEmailScreen.tsx
 import React from "react";
 import { Button, Text, View } from "react-native";
-import tw from "tailwind-react-native-classnames";
-
+import tw from "../../utils/tw";
 const VerifyEmailScreen = ({ route, navigation }) => {
   const { email } = route.params;
 

@@ -8,8 +8,7 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import tw from "tailwind-react-native-classnames";
-
+import tw from "../utils/tw";
 interface ServiceItem {
   id: string;
   name: string;

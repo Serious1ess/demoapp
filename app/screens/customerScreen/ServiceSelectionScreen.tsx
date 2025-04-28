@@ -10,8 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import tw from "tailwind-react-native-classnames";
-
+import tw from "../../utils/tw";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
@@ -131,7 +130,7 @@ const ServiceSelectionScreen = () => {
       }`}>
       {/* Customer Info */}
       <View
-        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        style={tw`bg-primary-50 p-4 rounded-lg mb-6 border-l-4 border-primary-500 shadow-sm`}>
         <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
           {customer?.full_name}
         </Text>
@@ -163,7 +162,7 @@ const ServiceSelectionScreen = () => {
               key={service.id}
               style={tw`flex-row justify-between items-center p-4 mb-3 bg-gray-50 rounded-lg ${
                 service.selected
-                  ? "bg-blue-50 border-2 border-blue-500"
+                  ? "bg-primary-50 border-2 border-primary-500"
                   : "border border-gray-200"
               }`}
               onPress={() => toggleServiceSelection(service.id)}>
@@ -177,7 +176,7 @@ const ServiceSelectionScreen = () => {
                   {service.duration} min
                 </Text>
               </View>
-              <Text style={tw`text-base font-semibold text-blue-800`}>
+              <Text style={tw`text-base font-semibold text-primary-800`}>
                 {service.price} TL
               </Text>
             </TouchableOpacity>
@@ -188,7 +187,7 @@ const ServiceSelectionScreen = () => {
       {/* Action Buttons */}
       <View style={tw`flex-row justify-between mt-auto pt-6 pb-4`}>
         <TouchableOpacity
-          style={tw`flex-1 bg-blue-500 rounded-lg py-3 mx-2 items-center shadow-lg ${
+          style={tw`flex-1 bg-primary-500 rounded-lg py-3 mx-2 items-center shadow-lg ${
             services.filter((s) => s.selected).length === 0 ? "opacity-50" : ""
           }`}
           onPress={handleNext}

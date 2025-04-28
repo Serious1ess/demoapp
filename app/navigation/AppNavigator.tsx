@@ -15,6 +15,7 @@ import VerifyEmailScreen from "../screens/auth/VerifyEmailScreen";
 import ServiceScreen from "../screens/bussinssScreen/AddServiceScreen";
 import BusinessHome from "../screens/bussinssScreen/BusinessHome";
 import AppointmentConfirmationScreen from "../screens/customerScreen/AppointmentConfirmationScreen";
+import CustomerDashboard from "../screens/customerScreen/customerDashboard";
 import DateTimeSelectionScreen from "../screens/customerScreen/DateTimeSelectionScreen";
 import HomeScreen from "../screens/customerScreen/HomeScreen";
 import ServiceSelectionScreen from "../screens/customerScreen/ServiceSelectionScreen";
@@ -42,7 +43,8 @@ const CustomerBookingNavigator = () => {
       <CustomerStack.Screen
         name="CustomerHome"
         component={HomeScreen}
-        options={{ title: "Home" }}
+        options={{ title: "Home", headerShown: false }}
+        // options={{ headerShown: false }}
       />
       <CustomerStack.Screen
         name="ServiceSelection"
@@ -155,9 +157,10 @@ const HomeTabs = () => {
         headerTintColor: "#fff",
         tabBarActiveTintColor: "#4b8494",
         tabBarInactiveTintColor: "#666",
+        tabBarShowLabel: false, // <--- THIS hides tab titles
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => navigation.navigate("notification")} // Fixed navigation
+            onPress={() => navigation.navigate("notification")}
             style={{ marginRight: 15 }}>
             <View style={{ position: "relative" }}>
               <Ionicons name="notifications-outline" size={24} color="#fff" />
@@ -193,6 +196,20 @@ const HomeTabs = () => {
           title: user?.isBusiness ? "Business Dashboard" : "Book Services",
         }}
       />
+
+      {!user?.isBusiness && (
+        <Tab.Screen
+          name="CustomerDashboard"
+          component={CustomerDashboard}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="grid-outline" color={color} size={size} />
+            ),
+            title: "Appointments",
+          }}
+        />
+      )}
+
       <Tab.Screen
         name="Profile"
         component={ProfileStackNavigator}
@@ -233,6 +250,7 @@ const AppNavigator = () => {
       screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Auth" component={AuthStackNavigator} />
       <Stack.Screen name="MainApp" component={HomeTabs} />
+      <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
 
       <Stack.Screen
         name="notification"

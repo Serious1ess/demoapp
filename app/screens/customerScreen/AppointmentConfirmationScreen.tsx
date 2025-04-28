@@ -10,10 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import tw from "tailwind-react-native-classnames";
 import { useUser } from "../../context/UserContext";
 import { createAppointment } from "../../supabase/busuniss";
-
+import tw from "../../utils/tw";
 type RootStackParamList = {
   Home: undefined;
   Appointments: undefined;
@@ -50,9 +49,11 @@ interface Service {
   duration: number;
 }
 
-const AppointmentConfirmationScreen = () => {
-  const navigation = useNavigation<AppointmentConfirmationNavigationProp>();
+const AppointmentConfirmationScreen = ({ navigation }) => {
+  const innerNavigation =
+    useNavigation<AppointmentConfirmationNavigationProp>();
   const route = useRoute<AppointmentConfirmationRouteProp>();
+
   const { user } = useUser();
   const { customer, selectedServices, selectedDate, selectedTime } =
     route.params;
@@ -79,14 +80,19 @@ const AppointmentConfirmationScreen = () => {
       if (!user?.id) throw new Error("You must be logged in");
       if (!customer?.id) throw new Error("Business information missing");
 
-      // Use the existing function
       const result = await createAppointment(
-        customer.id, // businessId
+        customer.id,
         selectedDate,
         selectedTime,
         selectedServices.map((s) => s.id)
       );
+
       console.log("Appointment Booked");
+      innerNavigation.goBack();
+      innerNavigation.goBack();
+      innerNavigation.goBack();
+      navigation.navigate("CustomerDashboard");
+
       Alert.alert(
         "Appointment Booked",
         `Your ${formatTime(totalDuration)} appointment with ${
@@ -95,7 +101,7 @@ const AppointmentConfirmationScreen = () => {
         [
           {
             text: "View Appointments",
-            onPress: () => navigation.navigate("Appointments"),
+            onPress: () => navigation.navigate("CustomerDashboard"),
           },
           {
             text: "Done",
@@ -122,7 +128,7 @@ const AppointmentConfirmationScreen = () => {
       }`}>
       {/* Business Info */}
       <View
-        style={tw`bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 shadow-sm`}>
+        style={tw`bg-primary-50 p-4 rounded-lg mb-6 border-l-4 border-primary-500 shadow-sm`}>
         <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
           {customer.full_name}
         </Text>
@@ -175,7 +181,7 @@ const AppointmentConfirmationScreen = () => {
 
         <View style={tw`flex-row justify-between items-center mt-4`}>
           <Text style={tw`text-lg font-bold text-gray-800`}>Total:</Text>
-          <Text style={tw`text-lg font-bold text-blue-800`}>
+          <Text style={tw`text-lg font-bold text-primary-800`}>
             {totalPrice} TL
           </Text>
         </View>

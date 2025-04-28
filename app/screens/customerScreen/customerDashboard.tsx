@@ -13,10 +13,10 @@ import { useUser } from "../../context/UserContext";
 import { supabase } from "../../supabase/supabase";
 import tw from "../../utils/tw";
 
-const BusinessHome = () => {
+const CustomerDashboard = () => {
   const { user } = useUser();
-  const fullname = user?.user_metadata?.full_name || "Business Owner";
-  const businessId = user?.id;
+  const fullname = user?.user_metadata?.full_name || "Customer";
+  const customerId = user?.id;
 
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +34,10 @@ const BusinessHome = () => {
 
   useEffect(() => {
     fetchAppointments();
-  }, [businessId, activeFilter]);
+  }, [customerId, activeFilter]);
 
   const fetchAppointments = async () => {
-    if (!businessId) return;
+    if (!customerId) return;
 
     setLoading(true);
     try {
@@ -52,7 +52,7 @@ const BusinessHome = () => {
           total_price,
           total_duration,
           created_at,
-          profiles!appointments_customer_id_fkey (id, full_name, phone),
+          profiles!appointments_business_id_fkey (id, full_name, phone),
           appointment_services (
             service_id,
             business_services (
@@ -63,7 +63,7 @@ const BusinessHome = () => {
           )
         `
         )
-        .eq("business_id", businessId);
+        .eq("customer_id", customerId);
 
       // Apply date filtering based on activeFilter
       if (activeFilter === "upcoming") {
@@ -108,44 +108,13 @@ const BusinessHome = () => {
     });
   };
 
-  // Handle approve action
-  const handleApprove = async () => {
+  // Handle cancel action
+  const handleCancel = async () => {
     if (!selectedAppointment) return;
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase.rpc("approve_appointment", {
-        _appointment_id: selectedAppointment.id,
-      });
-
-      if (error) throw error;
-
-      // Update the local state
-      setAppointments(
-        appointments.map((app) =>
-          app.id === selectedAppointment.id
-            ? { ...app, status: "confirmed" }
-            : app
-        )
-      );
-
-      Alert.alert("Success", "Appointment approved successfully");
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Error approving appointment:", error);
-      Alert.alert("Error", "Failed to approve appointment");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Handle reject action
-  const handleReject = async () => {
-    if (!selectedAppointment) return;
-
-    setIsProcessing(true);
-    try {
-      const { error } = await supabase.rpc("reject_appointment", {
+      const { error } = await supabase.rpc("cancel_appointment", {
         _appointment_id: selectedAppointment.id,
       });
 
@@ -160,21 +129,22 @@ const BusinessHome = () => {
         )
       );
 
-      Alert.alert("Success", "Appointment rejected successfully");
+      Alert.alert("Success", "Appointment cancelled successfully");
       setModalVisible(false);
     } catch (error) {
-      console.error("Error rejecting appointment:", error);
-      Alert.alert("Error", "Failed to reject appointment");
+      console.error("Error cancelling appointment:", error);
+      Alert.alert("Error", "Failed to cancel appointment");
     } finally {
       setIsProcessing(false);
     }
   };
+
+  // Handle mark completed action
   const handleMarkCompleted = async () => {
     if (!selectedAppointment) return;
 
     setIsProcessing(true);
     try {
-      // You'll need to create this RPC function similar to the others
       const { error } = await supabase.rpc("complete_appointment", {
         _appointment_id: selectedAppointment.id,
       });
@@ -199,13 +169,9 @@ const BusinessHome = () => {
       setIsProcessing(false);
     }
   };
+
   // Open action modal for appointment
   const openActionModal = (appointment) => {
-    // if (appointment.status !== "pending") {
-    //   Alert.alert("Info", `This appointment is already ${appointment.status}`);
-    //   return;
-    // }
-
     setSelectedAppointment(appointment);
     setModalVisible(true);
   };
@@ -226,10 +192,30 @@ const BusinessHome = () => {
     </TouchableOpacity>
   );
 
+  // Status color helper
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-500";
+      case "pending":
+        return "bg-yellow-500";
+      case "cancelled":
+        return "bg-red-500";
+      case "completed":
+        return "bg-primary-500";
+      case "missed":
+        return "bg-purple-500";
+      case "incompleted":
+        return "bg-orange-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
   // Appointment card component
   const AppointmentCard = ({ item }) => {
-    // Get customer information
-    const customer = item.profiles || {};
+    // Get business information
+    const business = item.profiles || {};
 
     // Get service information
     const services = item.appointment_services || [];
@@ -239,7 +225,7 @@ const BusinessHome = () => {
         style={tw`bg-white p-4 mb-4 rounded-lg shadow`}
         onPress={() => openActionModal(item)}>
         <View style={tw`flex-row justify-between mb-2`}>
-          <Text style={tw`font-bold text-lg`}>{customer.full_name}</Text>
+          <Text style={tw`font-bold text-lg`}>{business.full_name}</Text>
           <View style={tw`${getStatusColor(item.status)} px-2 py-1 rounded`}>
             <Text style={tw`text-white text-xs uppercase font-medium`}>
               {item.status}
@@ -251,7 +237,7 @@ const BusinessHome = () => {
           {formatDateTime(item.date, item.time)}
         </Text>
         <Text style={tw`text-gray-600 mb-1`}>
-          Phone: {customer.phone || "Not provided"}
+          Phone: {business.phone || "Not provided"}
         </Text>
 
         <View style={tw`mt-2`}>
@@ -270,96 +256,21 @@ const BusinessHome = () => {
           <Text style={tw`text-gray-600`}>{item.total_duration} min</Text>
         </View>
 
-        {item.status === "pending" && (
+        {(item.status === "pending" || item.status === "confirmed") && (
           <Text style={tw`mt-2 text-gray-500 italic text-sm text-center`}>
-            Tap to approve or reject
+            Tap to manage appointment
           </Text>
         )}
       </TouchableOpacity>
     );
   };
-  // Handle mark missed and incompleted actions
-  const handleMarkMissed = async () => {
-    if (!selectedAppointment) return;
-
-    setIsProcessing(true);
-    try {
-      const { error } = await supabase.rpc("mark_appointment_missed", {
-        _appointment_id: selectedAppointment.id,
-      });
-
-      if (error) throw error;
-
-      // Update the local state
-      setAppointments(
-        appointments.map((app) =>
-          app.id === selectedAppointment.id ? { ...app, status: "missed" } : app
-        )
-      );
-
-      Alert.alert("Success", "Appointment marked as missed");
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Error marking appointment as missed:", error);
-      Alert.alert("Error", "Failed to update appointment status");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleMarkIncompleted = async () => {
-    if (!selectedAppointment) return;
-
-    setIsProcessing(true);
-    try {
-      const { error } = await supabase.rpc("mark_appointment_incompleted", {
-        _appointment_id: selectedAppointment.id,
-      });
-
-      if (error) throw error;
-
-      // Update the local state
-      setAppointments(
-        appointments.map((app) =>
-          app.id === selectedAppointment.id
-            ? { ...app, status: "incompleted" }
-            : app
-        )
-      );
-
-      Alert.alert("Success", "Appointment marked as incompleted");
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Error marking appointment as incompleted:", error);
-      Alert.alert("Error", "Failed to update appointment status");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-  // Status color helper
-  // Status color helper
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-500";
-      case "pending":
-        return "bg-yellow-500";
-      case "cancelled":
-        return "bg-red-500";
-      case "completed":
-        return "bg-blue-500";
-      case "missed":
-        return "bg-purple-500";
-      case "incompleted":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   return (
     <View style={tw`flex-1 p-4 bg-gray-100`}>
-      <Text style={tw`text-gray-600 mb-4`}>Manage your appointments</Text>
+      <Text style={tw`text-2xl font-bold mb-2`}>My Appointments</Text>
+      <Text style={tw`text-gray-600 mb-4`}>
+        View and manage your appointments
+      </Text>
 
       {/* Filter tabs */}
       <View style={tw`flex-row justify-around my-4`}>
@@ -380,7 +291,7 @@ const BusinessHome = () => {
         <View style={tw`flex-1 justify-center items-center`}>
           <Text style={tw`text-red-500`}>{error}</Text>
           <TouchableOpacity
-            style={tw`mt-4 bg-blue-500 px-4 py-2 rounded`}
+            style={tw`mt-4 bg-primary-500 px-4 py-2 rounded`}
             onPress={fetchAppointments}>
             <Text style={tw`text-white`}>Try Again</Text>
           </TouchableOpacity>
@@ -407,7 +318,7 @@ const BusinessHome = () => {
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  colors={["#4f46e5"]} // Use your primary color here
+                  colors={["#4f46e5"]}
                 />
               }
             />
@@ -415,7 +326,6 @@ const BusinessHome = () => {
         </>
       )}
 
-      {/* Action Modal */}
       {/* Action Modal */}
       <Modal
         animationType="slide"
@@ -432,7 +342,7 @@ const BusinessHome = () => {
             {selectedAppointment && (
               <>
                 <Text style={tw`mb-2`}>
-                  Customer: {selectedAppointment.profiles?.full_name}
+                  Business: {selectedAppointment.profiles?.full_name}
                 </Text>
                 <Text style={tw`mb-4`}>
                   Date & Time:{" "}
@@ -455,43 +365,27 @@ const BusinessHome = () => {
               <View style={tw`flex-row justify-around mt-2`}>
                 <TouchableOpacity
                   style={tw`bg-red-500 py-2 px-4 rounded`}
-                  onPress={handleReject}
+                  onPress={handleCancel}
                   disabled={isProcessing}>
-                  <Text style={tw`text-white font-medium`}>Reject</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={tw`bg-green-500 py-2 px-4 rounded`}
-                  onPress={handleApprove}
-                  disabled={isProcessing}>
-                  <Text style={tw`text-white font-medium`}>Approve</Text>
+                  <Text style={tw`text-white font-medium`}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {selectedAppointment?.status === "confirmed" && (
-              <View style={tw`flex-row flex-wrap justify-around mt-2`}>
+              <View style={tw`flex-row justify-around mt-2`}>
                 <TouchableOpacity
-                  style={tw`bg-blue-500 py-2 px-4 rounded mb-2`}
+                  style={tw`bg-red-500 py-2 px-4 rounded`}
+                  onPress={handleCancel}
+                  disabled={isProcessing}>
+                  <Text style={tw`text-white font-medium`}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={tw`bg-primary-500 py-2 px-4 rounded`}
                   onPress={handleMarkCompleted}
                   disabled={isProcessing}>
                   <Text style={tw`text-white font-medium`}>Complete</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={tw`bg-purple-500 py-2 px-4 rounded mb-2`}
-                  onPress={handleMarkMissed}
-                  disabled={isProcessing}>
-                  <Text style={tw`text-white font-medium`}>Mark Missed</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={tw`bg-orange-500 py-2 px-4 rounded mb-2`}
-                  onPress={handleMarkIncompleted}
-                  disabled={isProcessing}>
-                  <Text style={tw`text-white font-medium`}>
-                    Mark Incomplete
-                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -500,7 +394,7 @@ const BusinessHome = () => {
               style={tw`mt-4 py-2 px-4 border border-gray-300 rounded`}
               onPress={() => setModalVisible(false)}
               disabled={isProcessing}>
-              <Text style={tw`text-center`}>Cancel</Text>
+              <Text style={tw`text-center`}>Close</Text>
             </TouchableOpacity>
 
             {isProcessing && (
@@ -516,4 +410,4 @@ const BusinessHome = () => {
   );
 };
 
-export default BusinessHome;
+export default CustomerDashboard;

@@ -184,3 +184,60 @@ export const getAppointmentServices = async (appointmentId) => {
   if (error) throw error;
   return data;
 };
+
+export const getAppointmentsByBusinessId = async (businessId, options = {}) => {
+  try {
+    // Start with a basic query
+    let query = supabase
+      .from("appointments")
+      .select(
+        `
+        id,
+        date,
+        time,
+        status,
+        total_price,
+        total_duration,
+        created_at,
+        updated_at,
+        profiles!appointments_customer_id_fkey (id, full_name, phone),
+        appointment_services (
+          service_id,
+          business_services (
+            name,
+            price,
+            duration_minutes
+          )
+        )
+      `
+      )
+      .eq("business_id", businessId);
+
+    // Apply optional filters
+    if (options.startDate) {
+      query = query.gte("date", options.startDate);
+    }
+
+    if (options.endDate) {
+      query = query.lte("date", options.endDate);
+    }
+
+    if (options.status) {
+      query = query.eq("status", options.status);
+    }
+
+    // Order by date and time
+    query = query
+      .order("date", { ascending: true })
+      .order("time", { ascending: true });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching appointments for business:", error);
+    throw error;
+  }
+};
