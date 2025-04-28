@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Button,
   FlatList,
   Text,
   TextInput,
@@ -90,7 +89,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
       {/* Add Button */}
       <View style={tw`mt-4`}>
-        <Button title="Add Service" onPress={handleAddService} />
+        <TouchableOpacity
+          style={tw`bg-primary py-2 rounded`}
+          onPress={handleAddService}>
+          <Text style={tw`text-white text-center text-lg`}>Add Service</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Services List */}
