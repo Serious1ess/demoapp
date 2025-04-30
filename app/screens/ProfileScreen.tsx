@@ -8,11 +8,21 @@ import { useUser } from "../context/UserContext";
 import tw from "../utils/tw"; // Use our custom tw
 
 const ProfileScreen = ({ navigation }) => {
-  const { user, loading, logout } = useUser();
+  const { user, loading, logout, Notifications } = useUser();
 
   const intl = useIntl();
   const locale = useIntl().defaultLocale;
 
+  const testLocalNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Test Notification",
+        body: "This is a local notification test!",
+        data: { screen: "TestScreen", params: { test: true } },
+      },
+      trigger: null, // Send immediately
+    });
+  };
   if (loading) {
     return (
       <View style={tw`flex-1 justify-center items-center`}>

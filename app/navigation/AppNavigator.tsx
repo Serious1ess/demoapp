@@ -259,6 +259,10 @@ const AppNavigator = () => {
       <Stack.Screen name="Auth" component={AuthStackNavigator} />
       <Stack.Screen name="MainApp" component={HomeTabs} />
       <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
+      <Stack.Screen
+        name="CustomerBookingNavigator"
+        component={CustomerBookingNavigator}
+      />
 
       <Stack.Screen
         name="notification"
@@ -281,8 +285,16 @@ const AppNavigator = () => {
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
       <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
       <AuthStack.Screen name="LoginSelect" component={LoginSelectScreen} />
-      <AuthStack.Screen name="Login" component={LoginScreen} />
-      <AuthStack.Screen name="Signup" component={SignupScreen} />
+      <AuthStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: true }}
+      />
+      <AuthStack.Screen
+        name="Signup"
+        component={SignupScreen}
+        options={{ headerShown: true }}
+      />
       <AuthStack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
     </Stack.Navigator>
   );

@@ -25,3 +25,16 @@
 /* .css-view-175oi2r {
   overflow: scroll;
 } */
+
+.h2.react-datepicker__current-month {
+  text-align: center;
+}
+.react-datepicker__header {
+  background-color: #cce7f1;
+}
+.react-datepicker__navigation:hover :before {
+  border-color: #000000;
+}
+.react-datepicker__navigation-icon--previous:before {
+  border-color: #000000;
+}

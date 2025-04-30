@@ -216,18 +216,33 @@ const DateTimeSelectionScreen = () => {
         Platform.OS === "ios" ? "pt-12" : "pt-4"
       }`}>
       {/* Customer Info */}
-      <View
-        style={tw`bg-primary-50 p-4 rounded-lg mb-6 border-l-4 border-primary-500 shadow-sm`}>
-        <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
-          {customer?.full_name}
+      <View style={tw`bg-primary-100 p-4 rounded-lg mb-6 shadow-sm`}>
+        <Text style={tw`text-lg  text-gray-800 mb-2`}>
+          Business Name:{" "}
+          <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
+            {customer?.full_name}
+          </Text>
         </Text>
-        <Text style={tw`text-base text-gray-600`}>
+
+        {/* <Text style={tw`text-base text-gray-600`}>
           Phone: {customer?.phone}
+        </Text> */}
+        <Text style={tw`text-base text-gray-600`}>
+          {selectedServices.map((service) => (
+            <View
+              key={service.id}
+              style={tw`flex-row justify-between items-center py-2 border-b border-gray-200`}>
+              <Text style={tw`text-base text-gray-800`}>{service.name}: </Text>
+              <Text style={tw`text-base font-semibold text-primary-800`}>
+                {service.price} TL
+              </Text>
+            </View>
+          ))}
         </Text>
       </View>
 
       {/* Selected Services Summary */}
-      <View style={tw`mb-6`}>
+      {/* <View style={tw`mb-6`}>
         <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
           Selected Services:
         </Text>
@@ -243,7 +258,7 @@ const DateTimeSelectionScreen = () => {
             </View>
           ))}
         </ScrollView>
-      </View>
+      </View> */}
 
       {/* Date Selection */}
       <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>

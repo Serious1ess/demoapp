@@ -114,7 +114,7 @@ const CustomerDashboard = () => {
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase.rpc("cancel_appointment", {
+      const { error } = await supabase.rpc("reject_appointment", {
         _appointment_id: selectedAppointment.id,
       });
 
@@ -139,36 +139,36 @@ const CustomerDashboard = () => {
     }
   };
 
-  // Handle mark completed action
-  const handleMarkCompleted = async () => {
-    if (!selectedAppointment) return;
+  // // Handle mark completed action
+  // const handleMarkCompleted = async () => {
+  //   if (!selectedAppointment) return;
 
-    setIsProcessing(true);
-    try {
-      const { error } = await supabase.rpc("complete_appointment", {
-        _appointment_id: selectedAppointment.id,
-      });
+  //   setIsProcessing(true);
+  //   try {
+  //     const { error } = await supabase.rpc("complete_appointment", {
+  //       _appointment_id: selectedAppointment.id,
+  //     });
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // Update the local state
-      setAppointments(
-        appointments.map((app) =>
-          app.id === selectedAppointment.id
-            ? { ...app, status: "completed" }
-            : app
-        )
-      );
+  //     // Update the local state
+  //     setAppointments(
+  //       appointments.map((app) =>
+  //         app.id === selectedAppointment.id
+  //           ? { ...app, status: "completed" }
+  //           : app
+  //       )
+  //     );
 
-      Alert.alert("Success", "Appointment marked as completed");
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Error completing appointment:", error);
-      Alert.alert("Error", "Failed to complete appointment");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  //     Alert.alert("Success", "Appointment marked as completed");
+  //     setModalVisible(false);
+  //   } catch (error) {
+  //     console.error("Error completing appointment:", error);
+  //     Alert.alert("Error", "Failed to complete appointment");
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
 
   // Open action modal for appointment
   const openActionModal = (appointment) => {
@@ -381,12 +381,12 @@ const CustomerDashboard = () => {
                   <Text style={tw`text-white font-medium`}>Cancel</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={tw`bg-primary-500 py-2 px-4 rounded`}
                   onPress={handleMarkCompleted}
                   disabled={isProcessing}>
                   <Text style={tw`text-white font-medium`}>Complete</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             )}
 

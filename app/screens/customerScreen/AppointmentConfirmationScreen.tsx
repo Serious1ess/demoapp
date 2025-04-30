@@ -128,7 +128,7 @@ const AppointmentConfirmationScreen = ({ navigation }) => {
       }`}>
       {/* Business Info */}
       <View
-        style={tw`bg-primary-50 p-4 rounded-lg mb-6 border-l-4 border-primary-500 shadow-sm`}>
+        style={tw`bg-primary-100 p-4 rounded-lg mb-6  border-primary-500 shadow-sm`}>
         <Text style={tw`text-lg font-bold text-gray-800 mb-2`}>
           {customer.full_name}
         </Text>

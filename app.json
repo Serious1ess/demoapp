@@ -17,6 +17,7 @@
         "foregroundImage": "./app/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "allowBackup": true,
       "package": "com.serious1ess.demoapp"
     },
     "web": {
