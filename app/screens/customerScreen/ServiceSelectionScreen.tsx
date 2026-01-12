@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;

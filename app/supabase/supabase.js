@@ -12,3 +12,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 });
+// Helper function to show alerts consistently across platforms
+export const showAlert = (title: string, message: string) => {
+  if (typeof window !== "undefined" && window.alert) {
+    // Web environment
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    // React Native environment
+    Alert.alert(title, message);
+  }
+};

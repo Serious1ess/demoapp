@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import Modal from "react-native-modal";
-import tw from "../utils/tw";
+import tw from "../utils/style/tw";
 interface PickerOption {
   label: string;
   value: string;

@@ -1,4 +1,5 @@
-import { supabase } from "./supabase"; // Import Supabase client
+import { supabase } from "./supabase";
+// Import Supabase client
 export const fetchBusinessCustomers = async (options?: {
   limit?: number,
   searchQuery?: string,

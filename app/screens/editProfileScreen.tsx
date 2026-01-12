@@ -11,7 +11,7 @@ import {
 import { ActivityIndicator } from "react-native-paper";
 import { useUser } from "../context/UserContext";
 import { handleUpdateProfile } from "../supabase/auth";
-import tw from "../utils/tw";
+import tw from "../utils/style/tw";
 
 const EditProfileScreen = ({ navigation }) => {
   const { user, loading, setUser } = useUser();

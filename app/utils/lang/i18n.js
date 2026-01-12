@@ -1,8 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
 import { IntlProvider } from "react-intl";
 import { I18nManager } from "react-native";
-import ar from "../locales/ar.json";
-import en from "../locales/en.json";
+import ar from "./locales/ar.json";
+import en from "./locales/en.json";
 
 const messages = { en, ar };
 export const LocaleContext = createContext();

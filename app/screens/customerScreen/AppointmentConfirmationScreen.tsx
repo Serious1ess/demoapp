@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { createAppointment } from "../../supabase/busuniss";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 type RootStackParamList = {
   Home: undefined;
   Appointments: undefined;

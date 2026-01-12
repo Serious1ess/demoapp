@@ -5,7 +5,7 @@ import { ActivityIndicator } from "react-native-paper";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import LanguageSelector from "../components/LanguageSelector";
 import { useUser } from "../context/UserContext";
-import tw from "../utils/tw"; // Use our custom tw
+import tw from "../utils/style/tw"; // Use our custom tw
 
 const ProfileScreen = ({ navigation }) => {
   const { user, loading, logout, Notifications } = useUser();

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View } from "react-native";
-import { LocaleContext } from "./i18n";
+import { LocaleContext } from "../lang/i18n";
 
 const StyleWrapper = ({ children }) => {
   const { locale } = useContext(LocaleContext);
@@ -10,7 +10,6 @@ const StyleWrapper = ({ children }) => {
       style={{
         flex: 1,
         writingDirection: locale === "ar" ? "rtl" : "ltr",
-        // direction: locale === "ar" ? "rtl" : "ltr",
       }}>
       {children}
     </View>

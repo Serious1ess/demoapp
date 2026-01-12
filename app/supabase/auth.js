@@ -1,17 +1,6 @@
-import { Alert, Platform } from "react-native";
-import { supabase } from "./supabase";
+import { Platform } from "react-native";
+import { showAlert, supabase } from "./supabase";
 import { uploadProfileImage } from "./utils/imageUploadUtils";
-
-// Helper function to show alerts consistently across platforms
-const showAlert = (title: string, message: string) => {
-  if (typeof window !== "undefined" && window.alert) {
-    // Web environment
-    window.alert(`${title}\n\n${message}`);
-  } else {
-    // React Native environment
-    Alert.alert(title, message);
-  }
-};
 
 export const handleUpdateProfile = async (
   userData: {

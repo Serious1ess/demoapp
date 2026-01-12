@@ -1,9 +1,8 @@
 import React from "react";
-import { LocaleProvider } from "./context/i18n";
-import StyleWrapper from "./context/StyleWrapper";
 import { UserProvider } from "./context/UserContext";
-import AppNavigator from "./navigation/AppNavigator";
-import "./styles/globle.css";
+import AppNavigator from "./navigation/AppNavigator"; // Updated import path
+import { LocaleProvider } from "./utils/lang/i18n";
+import StyleWrapper from "./utils/style/StyleWrapper";
 
 const App = () => {
   return (

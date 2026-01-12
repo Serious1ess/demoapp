@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import tw from "../utils/tw";
+import tw from "../utils/style/tw";
 interface ServiceItem {
   id: string;
   name: string;

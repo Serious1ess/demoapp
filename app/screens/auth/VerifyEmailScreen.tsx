@@ -1,7 +1,7 @@
 // screens/VerifyEmailScreen.tsx
 import React from "react";
 import { Button, Text, View } from "react-native";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 const VerifyEmailScreen = ({ route, navigation }) => {
   const { email } = route.params;
 

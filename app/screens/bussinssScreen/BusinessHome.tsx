@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { supabase } from "../../supabase/supabase";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 
 const BusinessHome = () => {
   const { user } = useUser();

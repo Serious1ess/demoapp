@@ -18,7 +18,7 @@ import {
   fetchUserServices,
   saveUserServiceData,
 } from "../../supabase/busuniss";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 interface ServiceItem {
   id: string;
   name: string;

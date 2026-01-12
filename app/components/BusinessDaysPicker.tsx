@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import tw from "../utils/tw";
+import tw from "../utils/style/tw";
 interface BusinessDaysPickerProps {
   selectedDays: string[];
   onDayToggle: (day: string) => void;

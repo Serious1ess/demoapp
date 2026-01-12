@@ -8,7 +8,7 @@ import {
   fetchBusinessCustomers,
   fetchUserServices,
 } from "../../supabase/customer";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 // Define the type for our navigation
 type RootStackParamList = {
   Home: undefined;

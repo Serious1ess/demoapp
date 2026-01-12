@@ -13,7 +13,7 @@ import {
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import tw from "../utils/tw"; // Using your custom tw utility
+import tw from "../utils/style/tw"; // Using your custom tw utility
 
 interface Service {
   id: string;

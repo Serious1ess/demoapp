@@ -1,6 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import {
@@ -12,6 +13,7 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -19,9 +21,8 @@ import {
   View,
 } from "react-native";
 import CustomPicker from "../../components/CustomPicker";
-import TurkishIdentityValidation from "../../context/turkishIdcheck";
 import { handleSignup } from "../../supabase/auth";
-import tw from "../../utils/tw"; // Using your custom tw utility
+import TurkishIdentityValidation from "../../supabase/utils/turkishIdcheck";
 
 interface FormErrors {
   email?: string;
@@ -66,16 +67,6 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   const countryOptions = [{ label: "Turkey", value: "turkey" }];
   const [country, setCountry] = useState("turkey");
 
-  // Platform-specific styling for form scrolling area
-  const formScrollStyle =
-    Platform.OS === "web"
-      ? {
-          ...tw`py-4 px-5`,
-          maxHeight: "calc(100vh - 150px)",
-          // overflowY: "auto",
-        }
-      : tw`py-4 px-5`;
-
   useEffect(() => {
     (async () => {
       const { status } =
@@ -92,7 +83,6 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   const pickImage = async () => {
     try {
       if (Platform.OS === "web") {
-        // Web implementation (unchanged)
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
@@ -118,9 +108,8 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
         };
         input.click();
       } else {
-        // Mobile implementation - working with current Expo versions
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["images", "videos"],
+          mediaTypes: ["images"],
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
@@ -146,86 +135,53 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     let isValid = true;
     let newErrors: FormErrors = {};
 
-    // Email validation
     if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = intl.formatMessage({ id: "emailRequired" });
+      isValid = false;
     }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    if (!password || password.length < 6) {
+      newErrors.password = intl.formatMessage({ id: "passwordRequired" });
+      isValid = false;
     }
-
-    if (!name) newErrors.name = "Name is required";
-    if (!surname) newErrors.surname = "Surname is required";
-
-    // Phone validation
+    if (!name) {
+      newErrors.name = intl.formatMessage({ id: "nameRequired" });
+      isValid = false;
+    }
+    if (!surname) {
+      newErrors.surname = intl.formatMessage({ id: "surnameRequired" });
+      isValid = false;
+    }
     if (!phone) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^(\+|00)[0-9]{3,}$/.test(phone)) {
-      newErrors.phone =
-        "Phone must start with + or 00 followed by country code";
+      newErrors.phone = intl.formatMessage({ id: "phoneRequired" });
+      isValid = false;
     }
-
-    // Turkish ID validation
-    // if (idNumber) {
-    //   // First check the algorithm
-    //   if (!turkishIdValidator.idValidation(idNumber)) {
-    //     newErrors.idNumber = "Invalid Turkish ID number";
-    //   } else {
-    //     // Then perform the mock online validation
-    //     try {
-    //       const isValidId = await turkishIdValidator.identityValidation({
-    //         identity: idNumber,
-    //         name: name,
-    //         surname: surname,
-    //         year: parseInt(birthday),
-    //       });
-
-    //       if (!isValidId) {
-    //         newErrors.idNumber = "ID verification failed";
-    //       }
-    //     } catch (error) {
-    //       newErrors.idNumber = "ID verification error";
-    //       console.error("ID validation error:", error);
-    //     }
-    //   }
-    // }
-
-    // Calculate minimum birth year (18 years ago from current year)
-    const currentYear = new Date().getFullYear();
-    const minBirthYear = currentYear - 18;
+    if (!idNumber) {
+      newErrors.idNumber = intl.formatMessage({ id: "idRequired" });
+      isValid = false;
+    } else {
+      const isValidId = turkishIdValidator.validate(idNumber);
+      if (!isValidId) {
+        newErrors.idNumber = intl.formatMessage({ id: "invalidId" });
+        isValid = false;
+      }
+    }
     if (!birthday) {
-      newErrors.birthday = "Year of birth is required";
-    } else if (birthday.length !== 4) {
-      newErrors.birthday = "Please enter a valid 4-digit year";
-    } else if (!/^(19|20)\d{2}$/.test(birthday)) {
-      newErrors.birthday = "Year must start with 19 or 20";
-    } else if (parseInt(birthday) > minBirthYear) {
-      newErrors.birthday = "You must be at least 18 years old";
+      newErrors.birthday = intl.formatMessage({ id: "birthdayRequired" });
+      isValid = false;
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid;
   };
 
   const onSignup = async () => {
-    if (!(await validateForm())) {
-      // Find the first field with an error and scroll to it
-      const errorFields = Object.keys(errors);
-      if (errorFields.length > 0 && scrollViewRef.current) {
-        // This is a simple implementation - ideally you'd scroll to the specific field
-        scrollViewRef.current.scrollTo({ y: 0, animated: true });
-      }
-      return;
-    }
-
-    setLoading(true);
     try {
+      const isValid = await validateForm();
+      if (!isValid) return;
+
+      setLoading(true);
+      setWaitingForVerification(true);
+
       await handleSignup(
         email,
         password,
@@ -233,10 +189,10 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
         surname,
         phone,
         idNumber,
-        profilePicture,
-        birthday,
-        setWaitingForVerification,
         isBusiness,
+        birthday,
+        profilePicture,
+        profileImageChanged,
         navigation
       );
     } catch (error) {
@@ -258,38 +214,20 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     keyboardType: any = "default",
     secureTextEntry: boolean = false,
     maxLength?: number,
-    icon?: string,
-    rightIcon?: JSX.Element
+    icon?: string
   ) => {
     return (
-      <View style={tw`mb-4`}>
-        <View
-          style={[
-            tw`flex-row items-center border rounded-xl overflow-hidden`,
-            {
-              borderColor: error ? "#ef476f" : "#e9ecef",
-              backgroundColor: "#ffffff",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
-              shadowRadius: 1,
-              elevation: 1,
-            },
-          ]}>
-          {icon && (
-            <View style={tw`pl-4 pr-2`}>
-              <Ionicons
-                name={icon as any}
-                size={20}
-                color={error ? "#ef476f" : "#8d99ae"}
-              />
-            </View>
-          )}
+      <View style={styles.inputGroup}>
+        <View style={styles.inputLabel}>
+          {icon && <Feather name={icon} size={16} color="#667eea" />}
+          <Text style={styles.labelText}>{placeholder}</Text>
+        </View>
+        <View style={[styles.inputContainer, error && styles.inputError]}>
           <TextInput
             placeholder={placeholder}
             value={value}
             onChangeText={setValue}
-            style={[tw`flex-1 p-4`, { color: "#2b2d42", fontSize: 16 }]}
+            style={styles.input}
             keyboardType={keyboardType}
             secureTextEntry={secureTextEntry}
             maxLength={maxLength}
@@ -298,14 +236,11 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
                 ? "none"
                 : "words"
             }
+            placeholderTextColor="rgba(255, 255, 255, 0.5)"
+            editable={!loading}
           />
-          {rightIcon}
         </View>
-        {error && (
-          <Text style={[tw`text-sm mt-1 ml-1`, { color: "#ef476f" }]}>
-            {error}
-          </Text>
-        )}
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     );
   };
@@ -314,129 +249,281 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
 
   if (waitingForVerification) {
     return (
-      <View style={tw`flex-1 justify-center items-center p-6 bg-white`}>
-        <View
-          style={[
-            tw`p-8 rounded-2xl items-center`,
-            {
-              backgroundColor: "#f8f9fa",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.1,
-              shadowRadius: 15,
-              elevation: 5,
-            },
-          ]}>
-          <Ionicons name="mail" size={60} color={tw.colors.primary} />
-          <Text
-            style={[
-              tw`text-xl text-center mt-4 mb-6`,
-              { color: "#2b2d42", fontWeight: "600" },
-            ]}>
+      <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.container}>
+        <View style={styles.verificationContainer}>
+          <View style={styles.verificationBadge}>
+            <Feather name="mail" size={50} color="white" />
+          </View>
+          <Text style={styles.verificationTitle}>
             {intl.formatMessage({ id: "verifyEmailPrompt" })}
           </Text>
-          <ActivityIndicator size="large" color={tw.colors.primary} />
+          <ActivityIndicator size="large" color="white" />
         </View>
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={tw`flex-1 bg-white`}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
 
-      {/* <View style={tw`pt-8 px-5 bg-white shadow-sm`}>
-        <View style={tw`max-w-md w-full mx-auto`}>
-          <View style={tw`mb-4 items-center`}>
-            <Text
-              style={[tw`text-3xl mb-2 text-primary`, { fontWeight: "bold" }]}>
+      {Platform.OS === "web" ? (
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+          style={styles.webScroll}>
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("LoginSelect")}
+              style={styles.backButton}>
+              <Feather name="arrow-left" size={24} color="white" />
+            </TouchableOpacity>
+
+            <View style={styles.logoContainer}>
+              <View style={styles.logoBadge}>
+                <Feather name="user-plus" size={40} color="white" />
+              </View>
+            </View>
+
+            <Text style={styles.mainTitle}>
               {intl.formatMessage({ id: "createAccount" })}
             </Text>
-            <Text style={[tw`text-base text-center`, { color: "#8d99ae" }]}>
+            <Text style={styles.subtitle}>
               {intl.formatMessage({ id: "joinUs" })}
             </Text>
           </View>
-        </View>
-      </View> */}
 
-      {/* Scrollable Form Area */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={tw`flex-1 bg-white`}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}>
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={formScrollStyle}
-          keyboardShouldPersistTaps="handled"
-          scrollEnabled={true}
-          showsVerticalScrollIndicator={true}
-          bounces={true}>
-          <View style={tw`max-w-md w-full mx-auto`}>
-            {/* Profile Picture */}
-            <View style={tw`items-center mb-6`}>
+          {/* Profile Picture Section */}
+          <View style={styles.profileSection}>
+            <TouchableOpacity style={styles.profilePicture} onPress={pickImage}>
+              {profilePicture ? (
+                <Image
+                  source={{ uri: profilePicture }}
+                  style={styles.profileImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.profilePlaceholder}>
+                  <Feather
+                    name="camera"
+                    size={32}
+                    color="rgba(255, 255, 255, 0.6)"
+                  />
+                  <Text style={styles.profileText}>
+                    {intl.formatMessage({ id: "selectProfilePicture" })}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {errors.profilePicture && (
+              <Text style={styles.errorText}>{errors.profilePicture}</Text>
+            )}
+          </View>
+
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            {renderInputField(
+              intl.formatMessage({ id: "EML" }),
+              email,
+              setEmail,
+              errors.email,
+              "email-address",
+              false,
+              undefined,
+              "mail"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "PSSWRD" }),
+              password,
+              setPassword,
+              errors.password,
+              "default",
+              !showPassword,
+              undefined,
+              "lock"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "firstName" }),
+              name,
+              setName,
+              errors.name,
+              "default",
+              false,
+              undefined,
+              "user"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "lastName" }),
+              surname,
+              setSurname,
+              errors.surname,
+              "default",
+              false,
+              undefined,
+              "user"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "phone" }),
+              phone,
+              setPhone,
+              errors.phone,
+              "phone-pad",
+              false,
+              undefined,
+              "phone"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "idNumber" }),
+              idNumber,
+              setIdNumber,
+              errors.idNumber,
+              "numeric",
+              false,
+              11,
+              "id-card"
+            )}
+
+            {renderInputField(
+              intl.formatMessage({ id: "birthday" }),
+              birthday,
+              setBirthday,
+              errors.birthday,
+              "default",
+              false,
+              undefined,
+              "calendar"
+            )}
+
+            {/* Business Toggle */}
+            <View style={styles.toggleSection}>
+              <View style={styles.toggleLabel}>
+                <Feather name="briefcase" size={16} color="#667eea" />
+                <Text style={styles.labelText}>
+                  {intl.formatMessage({ id: "signUpAsABusiness" })}
+                </Text>
+              </View>
+              <Switch
+                value={isBusiness}
+                onValueChange={setIsBusiness}
+                trackColor={{
+                  false: "rgba(255, 255, 255, 0.2)",
+                  true: "rgba(255, 255, 255, 0.4)",
+                }}
+                thumbColor={isBusiness ? "#ffed4e" : "rgba(255, 255, 255, 0.6)"}
+              />
+            </View>
+          </View>
+
+          {/* Sign Up Button */}
+          <View style={styles.buttonSection}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onSignup}
+              disabled={loading}>
+              <LinearGradient
+                colors={["#5a67d8", "#4c51bf"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.signupButton, loading && styles.buttonDisabled]}>
+                <View style={styles.buttonContent}>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="large" />
+                  ) : (
+                    <>
+                      <Feather name="user-check" size={20} color="white" />
+                      <Text style={styles.signupButtonText}>
+                        {intl.formatMessage({ id: "signUp" })}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
+          {/* Login Link */}
+          <View style={styles.loginSection}>
+            <Text style={styles.loginText}>
+              {intl.formatMessage({ id: "alreadyHaveAccount" })}{" "}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.loginLink}>
+                {intl.formatMessage({ id: "login" })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}>
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            {/* Header Section */}
+            <View style={styles.headerSection}>
               <TouchableOpacity
-                style={[
-                  tw`h-full w-24 rounded-full justify-center items-center overflow-hidden`,
-                  {
-                    backgroundColor: "#f1f3f5",
-                    borderWidth: 2,
-                    borderColor: profilePicture ? tw.colors.primary : "#e9ecef",
-                  },
-                ]}
+                onPress={() => navigation.navigate("LoginSelect")}
+                style={styles.backButton}>
+                <Feather name="arrow-left" size={24} color="white" />
+              </TouchableOpacity>
+
+              <View style={styles.logoContainer}>
+                <View style={styles.logoBadge}>
+                  <Feather name="user-plus" size={40} color="white" />
+                </View>
+              </View>
+
+              <Text style={styles.mainTitle}>
+                {intl.formatMessage({ id: "createAccount" })}
+              </Text>
+              <Text style={styles.subtitle}>
+                {intl.formatMessage({ id: "joinUs" })}
+              </Text>
+            </View>
+
+            {/* Profile Picture Section */}
+            <View style={styles.profileSection}>
+              <TouchableOpacity
+                style={styles.profilePicture}
                 onPress={pickImage}>
                 {profilePicture ? (
                   <Image
                     source={{ uri: profilePicture }}
-                    style={tw`w-full h-full`}
+                    style={styles.profileImage}
                     resizeMode="cover"
                   />
                 ) : (
-                  <View style={tw`items-center`}>
-                    <Ionicons name="person" size={30} color="#8d99ae" />
-                    <Text style={[tw`text-xs mt-1`, { color: "#8d99ae" }]}>
+                  <View style={styles.profilePlaceholder}>
+                    <Feather
+                      name="camera"
+                      size={32}
+                      color="rgba(255, 255, 255, 0.6)"
+                    />
+                    <Text style={styles.profileText}>
                       {intl.formatMessage({ id: "selectProfilePicture" })}
                     </Text>
                   </View>
                 )}
               </TouchableOpacity>
               {errors.profilePicture && (
-                <Text style={[tw`text-sm mt-1`, { color: "#ef476f" }]}>
-                  {errors.profilePicture}
-                </Text>
+                <Text style={styles.errorText}>{errors.profilePicture}</Text>
               )}
             </View>
 
-            {/* Form Fields */}
-            <View style={tw`mb-4`}>
-              {/* Name and Surname in a row */}
-              <View style={tw`flex-row mb-4`}>
-                <View style={tw`flex-1 mr-2`}>
-                  {renderInputField(
-                    intl.formatMessage({ id: "name" }),
-                    name,
-                    setName,
-                    errors.name,
-                    "default",
-                    false,
-                    undefined,
-                    "person-outline"
-                  )}
-                </View>
-                <View style={tw`flex-1 ml-2`}>
-                  {renderInputField(
-                    intl.formatMessage({ id: "surname" }),
-                    surname,
-                    setSurname,
-                    errors.surname,
-                    "default",
-                    false,
-                    undefined,
-                    "people-outline"
-                  )}
-                </View>
-              </View>
-
-              {/* Email */}
+            {/* Form Section */}
+            <View style={styles.formSection}>
               {renderInputField(
                 intl.formatMessage({ id: "EML" }),
                 email,
@@ -445,10 +532,9 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
                 "email-address",
                 false,
                 undefined,
-                "mail-outline"
+                "mail"
               )}
 
-              {/* Password */}
               {renderInputField(
                 intl.formatMessage({ id: "PSSWRD" }),
                 password,
@@ -457,202 +543,380 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
                 "default",
                 !showPassword,
                 undefined,
-                "lock-closed-outline",
-                <TouchableOpacity
-                  style={tw`pr-4`}
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color="#8d99ae"
-                  />
-                </TouchableOpacity>
+                "lock"
               )}
 
-              {/* Phone Number */}
               {renderInputField(
-                intl.formatMessage({ id: "phonePlaceholder" }),
+                intl.formatMessage({ id: "namee" }),
+                name,
+                setName,
+                errors.name,
+                "default",
+                false,
+                undefined,
+                "user"
+              )}
+
+              {renderInputField(
+                intl.formatMessage({ id: "surname" }),
+                surname,
+                setSurname,
+                errors.surname,
+                "default",
+                false,
+                undefined,
+                "user"
+              )}
+
+              {renderInputField(
+                intl.formatMessage({ id: "phone" }),
                 phone,
-                (text) => {
-                  const formatted = text
-                    .replace(/[^0-9+]/g, "")
-                    .replace(/(?!^\+)^\+/g, "")
-                    .replace(/^00/, "00")
-                    .replace(/^([^0+]).*/, "$1")
-                    .replace(/^0([^0]).*/, "0$1")
-                    .replace(/^\+([^0-9]).*/, "+");
-                  setPhone(formatted);
-                },
+                setPhone,
                 errors.phone,
                 "phone-pad",
                 false,
-                15,
-                "call-outline"
+                undefined,
+                "phone"
               )}
 
-              {/* ID Number */}
               {renderInputField(
-                intl.formatMessage({ id: "turkishIdPlaceholder" }),
+                intl.formatMessage({ id: "turId" }),
                 idNumber,
-                (text) => {
-                  const numbersOnly = text.replace(/[^0-9]/g, "");
-                  setIdNumber(numbersOnly);
-                },
+                setIdNumber,
                 errors.idNumber,
                 "numeric",
                 false,
                 11,
-                "card-outline"
+                "id-card"
               )}
 
-              {/* Birthday (Year Only) */}
               {renderInputField(
-                intl.formatMessage({ id: "birthYearPlaceholder" }),
+                intl.formatMessage({ id: "birthDate" }),
                 birthday,
-                (input) => {
-                  let numbersOnly = input.replace(/[^0-9]/g, "");
-                  if (
-                    numbersOnly.length >= 1 &&
-                    !["1", "2"].includes(numbersOnly[0])
-                  ) {
-                    numbersOnly = "";
-                  }
-                  if (
-                    numbersOnly.length >= 2 &&
-                    numbersOnly[0] === "1" &&
-                    numbersOnly[1] !== "9"
-                  ) {
-                    numbersOnly = numbersOnly.slice(0, 1);
-                  }
-                  if (
-                    numbersOnly.length >= 2 &&
-                    numbersOnly[0] === "2" &&
-                    numbersOnly[1] !== "0"
-                  ) {
-                    numbersOnly = numbersOnly.slice(0, 1);
-                  }
-                  setBirthday(numbersOnly);
-                },
+                setBirthday,
                 errors.birthday,
                 "numeric",
                 false,
-                4,
-                "calendar-outline"
+                10,
+                "calendar"
               )}
 
-              {/* Country Picker */}
-              <View style={tw`mb-4`}>
-                <View
-                  style={[
-                    tw`border rounded-xl overflow-hidden flex-row items-center`,
-                    {
-                      borderColor: errors.country ? "#ef476f" : "#e9ecef",
-                      backgroundColor: "#ffffff",
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 1,
-                      elevation: 1,
-                    },
-                  ]}>
-                  <View style={tw`pl-4 pr-2`}>
-                    <Ionicons name="flag-outline" size={20} color="#8d99ae" />
-                  </View>
-                  <CustomPicker
-                    value={country}
-                    options={countryOptions}
-                    onChange={setCountry}
-                    placeholder={intl.formatMessage({ id: "selectCountry" })}
-                    containerStyle={tw`flex-1 py-2`}
-                  />
-                </View>
-                {errors.country && (
-                  <Text style={[tw`text-sm mt-1 ml-1`, { color: "#ef476f" }]}>
-                    {errors.country}
+              <View style={styles.pickerContainer}>
+                <View style={styles.inputLabel}>
+                  <Feather name="globe" size={16} color="#667eea" />
+                  <Text style={styles.labelText}>
+                    {intl.formatMessage({ id: "country" })}
                   </Text>
-                )}
+                </View>
+                <CustomPicker
+                  selectedValue={country}
+                  onValueChange={setCountry}
+                  items={countryOptions}
+                />
               </View>
 
-              {/* Business Account Toggle */}
-              <View
-                style={[
-                  tw`flex-row justify-between items-center w-full mb-6 p-4 rounded-xl`,
-                  {
-                    backgroundColor: "#f1f3f5",
-                  },
-                ]}>
-                <View style={tw`flex-row items-center`}>
-                  <Ionicons
-                    name="business-outline"
-                    size={22}
-                    color={isBusiness ? tw.colors.primary : "#8d99ae"}
-                    style={tw`mr-3`}
-                  />
-                  <Text
-                    style={[
-                      tw`text-base`,
-                      {
-                        color: isBusiness ? tw.colors.primary : "#2b2d42",
-                        fontWeight: isBusiness ? "600" : "normal",
-                      },
-                    ]}>
+              <View style={styles.businessToggle}>
+                <View style={styles.toggleLeft}>
+                  <Feather name="briefcase" size={18} color="#667eea" />
+                  <Text style={styles.toggleLabel}>
                     {intl.formatMessage({ id: "businessAccount" })}
                   </Text>
                 </View>
                 <Switch
                   value={isBusiness}
                   onValueChange={setIsBusiness}
-                  trackColor={{ false: "#e9ecef", true: tw.colors.primary }}
-                  thumbColor="#ffffff"
-                  ios_backgroundColor="#e9ecef"
+                  trackColor={{
+                    false: "rgba(255, 255, 255, 0.2)",
+                    true: "#667eea",
+                  }}
+                  thumbColor="white"
                 />
               </View>
             </View>
 
             {/* Sign Up Button */}
-            <TouchableOpacity
-              style={[
-                tw`w-full py-4 rounded-xl mb-4 bg-primary`,
-                {
-                  shadowColor: tw.colors.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 4,
-                },
-              ]}
-              activeOpacity={0.8}
-              onPress={onSignup}
-              disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text
+            <View style={styles.buttonSection}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={onSignup}
+                disabled={loading}>
+                <LinearGradient
+                  colors={["#5a67d8", "#4c51bf"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={[
-                    tw`text-center text-lg`,
-                    { color: "#fff", fontWeight: "600" },
+                    styles.signupButton,
+                    loading && styles.buttonDisabled,
                   ]}>
-                  {intl.formatMessage({ id: "signUp" })}
-                </Text>
-              )}
-            </TouchableOpacity>
+                  <View style={styles.buttonContent}>
+                    {loading ? (
+                      <ActivityIndicator color="white" size="large" />
+                    ) : (
+                      <>
+                        <Feather name="user-check" size={20} color="white" />
+                        <Text style={styles.signupButtonText}>
+                          {intl.formatMessage({ id: "signUp" })}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
 
             {/* Login Link */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Login")}
-              style={tw`mb-4`}>
-              <Text style={[tw`text-center`, { color: "#8d99ae" }]}>
+            <View style={styles.loginSection}>
+              <Text style={styles.loginText}>
                 {intl.formatMessage({ id: "alreadyHaveAccount" })}{" "}
-                <Text style={tw`text-primary font-bold`}>
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.loginLink}>
                   {intl.formatMessage({ id: "login" })}
                 </Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  webScroll: {
+    flex: 1,
+    overflow: "auto",
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  headerSection: {
+    alignItems: "center",
+    marginBottom: 30,
+    marginTop: 10,
+  },
+
+  backButton: {
+    alignSelf: "flex-start",
+    marginBottom: 20,
+    padding: 8,
+  },
+
+  logoContainer: {
+    marginBottom: 20,
+  },
+
+  logoBadge: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "white",
+    marginBottom: 8,
+  },
+
+  subtitle: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+
+  profileSection: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    overflow: "hidden",
+  },
+
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  profilePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  profileText: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.6)",
+    marginTop: 6,
+    textAlign: "center",
+  },
+
+  formSection: {
+    marginBottom: 30,
+    gap: 18,
+  },
+
+  inputGroup: {
+    gap: 8,
+  },
+
+  inputLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  labelText: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  inputContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+
+  inputError: {
+    borderColor: "#ff6b6b",
+  },
+
+  input: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+
+  toggleSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+  },
+
+  toggleLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  buttonSection: {
+    marginBottom: 20,
+  },
+
+  signupButton: {
+    borderRadius: 14,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+
+  signupButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+
+  loginSection: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 4,
+  },
+
+  loginText: {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  loginLink: {
+    color: "#ffed4e",
+    fontSize: 14,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+
+  verificationContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+
+  verificationBadge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 30,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+
+  verificationTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "white",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+});
 
 export default SignupScreen;

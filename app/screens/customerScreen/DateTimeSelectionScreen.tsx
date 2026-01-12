@@ -15,7 +15,7 @@ import {
 // import DatePicker from "react-native-date-picker"; // For Android and iOS
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { supabase } from "../../supabase/supabase";
-import tw from "../../utils/tw";
+import tw from "../../utils/style/tw";
 // Define the types for our navigation parameters
 type RootStackParamList = {
   Home: undefined;
